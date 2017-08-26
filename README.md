@@ -39,5 +39,5 @@
 # Linux 安装
 
  * 安装 fcitx
- * 拷贝 sp.dat 至 ~/.config/fcitx/pinyin
+ * 拷贝 sp.dat 至 ~/.config/fcitx/pinyin 目录下
  * 在 fcitx 配置中选择自定义双拼
