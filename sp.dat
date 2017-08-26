@@ -1,0 +1,44 @@
+ # --------------------------------------------------------
+ [方案]
+ 方案名称=月边鸟
+
+ [零声母标识]
+ =O
+
+ [声母]
+ # 双拼编码就是它本身的声母不必列出
+ ch=I
+ sh=U
+ zh=V
+
+ [韵母]
+ # 双拼编码就是它本身的韵母不必列出
+ ai=S
+ an=Z
+ ang=X
+ ao=W
+ ei=R
+ en=D
+ eng=F
+ er=F
+ ia=T
+ ian=B
+ iang=H
+ iao=N
+ ie=C
+ in=K
+ ing=L
+ iong=;
+ iu=M
+ ng=;
+ ong=;
+ ou=P
+ ua=T
+ uai=Y
+ uan=G
+ uang=H
+ ue=Y
+ ui=V
+ un=J
+ ve=Y
+ uo=O
