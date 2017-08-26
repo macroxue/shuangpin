@@ -1,7 +1,4 @@
-# shuangpin
-A keyboard layout for Chinese ShuangPin input method
-
-双拼键盘布局 -- 月边鸟
+# 双拼键盘布局 -- 月边鸟
 ```
 -------------------------------------------------------------
 | Q   | W   | E     R   | T     Y     U sh| I ch| O     P   |
@@ -38,3 +35,9 @@ A keyboard layout for Chinese ShuangPin input method
  * 键盘中下方的五个键位都分配给了与 i 相关的韵母，其中 ie 在 e 的所在列，iu 在 u 的所在列。iao 在 N 键位，可以用 "鸟" 助记。
  * er 和 eng 共享 F 键位，uo 在 O 键位，iong 和 ong 共享；键位，都是相似和谐音。
  * ue 在 Y 键位，可以简单地用 "月" 助记。
+
+# Linux 安装
+
+ * 安装 fcitx
+ * 拷贝 sp.dat 至 ~/.config/fcitx/pinyin
+ * 在 fcitx 配置中选择自定义双拼
