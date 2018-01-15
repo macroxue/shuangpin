@@ -1,6 +1,6 @@
  # --------------------------------------------------------
  [方案]
- 方案名称=月边鸟
+ 方案名称=六合双拼
 
  [零声母标识]
  =O
@@ -21,10 +21,10 @@
  en=D
  eng=F
  er=F
- ia=T
- ian=B
- iang=H
- iao=N
+ ia=G
+ ian=T
+ iang=N
+ iao=Y
  ie=C
  in=K
  ing=L
@@ -33,12 +33,12 @@
  ng=;
  ong=;
  ou=P
- ua=T
- uai=Y
- uan=G
- uang=H
- ue=Y
+ ua=G
+ uai=H
+ uan=B
+ uang=N
+ ue=H
  ui=V
  un=J
- ve=Y
+ ve=H
  uo=O
