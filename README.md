@@ -1,6 +1,7 @@
 # UAI优化双拼方案
 
 ![UAI优化双拼方案](https://github.com/macroxue/shuangpin/blob/master/UAI优化/scheme.jpg)
+统计计算来源于https://tiansh.github.io/lqbz/sp/
 
 几个假设：
  * 根据习惯，单韵母 a、o、e、i、u、ü 分别固定在 A、O、E、I、U、V 键位。
@@ -27,7 +28,7 @@
 像一个连续的变化。
 
 排名第二并且放在顶行的en比较特殊。在用的比较多的带en的拼音里只有ben
-是异指跨排，其它更高频的ren、men、shen、wen、fen以及更低频的zhen、hen、
+是异指跨行，其它更高频的ren、men、shen、wen、fen以及更低频的zhen、hen、
 chen、gen都很顺手。x和en不可拼，所以en没有同指跨行。
 
 同指跨行击键只有：ce、nu、mu、shei。前三个不带复韵母，所以不可避免。
