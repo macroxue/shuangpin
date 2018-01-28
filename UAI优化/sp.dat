@@ -1,0 +1,44 @@
+ # --------------------------------------------------------
+ [方案]
+ 方案名称=UAI优化双拼
+
+ [零声母标识]
+ =O
+
+ [声母]
+ # 双拼编码就是它本身的声母不必列出
+ ch=I
+ sh=U
+ zh=E
+
+ [韵母]
+ # 双拼编码就是它本身的韵母不必列出
+ ai=J
+ an=K
+ ang=D
+ ao=S
+ ei=M
+ en=W
+ eng=F
+ er=G
+ ia=X
+ ian=L
+ iang=;
+ iao=N
+ ie=C
+ in=B
+ ing=G
+ iong=H
+ iu=Q
+ ng=H
+ ong=H
+ ou=R
+ ua=X
+ uai=L
+ uan=Y
+ uang=;
+ ue=T
+ ui=T
+ un=P
+ ve=T
+ uo=O
