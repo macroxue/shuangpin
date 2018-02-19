@@ -467,6 +467,9 @@ function is_right(x) {
 }
 
 function percent(part, whole) {
+  if (whole == 0) {
+    return 0;
+  }
   return (part * 100.0 / whole).toFixed(1);
 }
 
@@ -625,7 +628,7 @@ function clear_error() {
                 </tr>
                 <tr>
                   <th>平均每键</th>
-                  <td class='stats'>1</td>
+                  <td class='stats'></td>
                   <td class='stats' id='avg_time'></td>
                   <td class='stats' id='avg_distance'></td>
                   <td class='stats' id='avg_effective_distance'></td>
