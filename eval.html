@@ -64,13 +64,14 @@ table[class='stats'], td[class='stats'] {
     </style>
     <script>
 var schemes = {
-  麦优化:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo 0,P=un,S=ao,D=ang,F=eng,G=ing er,H=ong iong,J=ai,K=an,L=ian uai,FH=iang uang,X=ia ua,C=ie,B=in,N=iao,M=ei',
   加加:'Q=ing er,W=ei,R=en,T=eng,Y=ong iong,U=ch,I=sh,O=uo,P=ou,S=ai,D=ao,F=an,G=ang,H=iang uang,J=ian,K=iao,L=in,Z=un,X=ve ue uai,C=uan,V=zh ui,B=ia ua,N=iu,M=ie',
   小鹤:'Q=iu,W=ei,R=uan er,T=ve ue,Y=un,U=sh,I=ch,O=uo,P=ie,S=ong iong,D=ai,F=en,G=eng,H=ang,J=an,K=ing uai,L=iang uang,Z=ou,X=ia ua,C=ao,V=zh ui,B=in,N=iao,M=ian',
   微软:'Q=iu,W=ia ua,R=uan er,T=ue,Y=uai v,U=sh,I=ch,O=uo 0,P=un,S=ong iong,D=uang iang,F=en,G=eng,H=ang,J=an,K=ao,L=ai,FH=ing,Z=ei,X=ie,C=iao,V=zh ui ve,B=ou,N=in,M=ian',
   智能ABC:'Q=ei,W=ian,E=ch,R=iu er,T=iang uang,Y=ing,O=uo 0,P=uan,A=zh,S=ong iong,D=ia ua,F=en,G=eng,H=ang,J=an,K=ao,L=ai,Z=iao,X=ie,C=in uai,V=sh,B=ou,N=un,M=ui ve ue',
   紫光:'Q=ao,W=en,R=an,T=eng,Y=in uai,U=zh,I=sh,O=uo 0,P=ai,A=ch,S=ang,D=ie,F=ian,G=iang uang,H=ong iong,J=iu er,K=ei,L=uan,FH=ing,Z=ou,X=ia ua,B=iao,N=ui ve ue,M=un',
   自然码:'Q=iu,W=ia ua,R=uan er,T=ve ue,Y=ing uai,U=sh,I=ch,O=uo,P=un,S=ong iong,D=iang uang,F=en,G=eng,H=ang,J=an,K=ao,L=ai,Z=ei,X=ie,C=iao,V=zh ui,B=ou,N=in,M=ian',
+  六六:'W=ao,R=ei,T=ian,Y=iao,U=sh,I=ch,O=uo,P=ou,S=ai,D=en,F=eng,G=ua ia,H=uai ue ve,J=un,K=in,L=ing,FH=ong iong,Z=an,X=ang,C=ie er,V=zh ui,B=uan,N=uang iang,M=iu',
+  UAI优化:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo 0,P=un,S=ao,D=ang,F=eng,G=ing er,H=ong iong,J=ai,K=an,L=ian uai,FH=iang uang,X=ia ua,C=ie,B=in,N=iao,M=ei',
   自定义:'Q=,W=,E=,R=,T=,Y=,U=,I=,O=,P=,A=,S=,D=,F=,G=,H=,J=,K=,L=,FH=,Z=,X=,C=,V=,B=,N=,M=,DH=,JH=,CH=',
   empty:'Q=,W=,E=,R=,T=,Y=,U=,I=,O=,P=,A=,S=,D=,F=,G=,H=,J=,K=,L=,FH=,Z=,X=,C=,V=,B=,N=,M=,DH=,JH=,CH='
 };
@@ -120,15 +121,34 @@ function show_keyboard(scheme_name) {
   }
 }
 
-function evaluate_scheme() {
-  var scheme_name = document.getElementById('scheme-name').value;
-  var scheme = get_scheme_from_keys();
+function evaluate_scheme(scheme_name, scheme) {
   var strokes_and_error = convert_text_to_key_strokes(scheme);
   var result = hit_key_strokes(strokes_and_error[0]);
   result.scheme = scheme;
   result.error = strokes_and_error[1];
   results[scheme_name] = result;
+}
+
+function evaluate_current_scheme() {
+  var scheme_name = document.getElementById('scheme-name').value;
+  var scheme = get_scheme_from_keys();
+  evaluate_scheme(scheme_name, scheme);
   show_results(scheme_name);
+}
+
+function evaluate_all_schemes() {
+  var current_scheme_name = document.getElementById('scheme-name').value;
+  for (var scheme_name in schemes) {
+    var scheme = schemes[scheme_name];
+    var result = results[scheme_name];
+    if (result != null) {
+      scheme = result.scheme;
+    }
+    evaluate_scheme(scheme_name, scheme);
+    if (scheme_name == current_scheme_name) {
+      show_results(scheme_name);
+    }
+  }
 }
 
 function get_key_name(key) {
@@ -184,7 +204,7 @@ function convert_text_to_key_strokes(scheme) {
         continue;
       }
       var existing_key = pinyin_map[py];
-      if (existing_key != null) {
+      if (existing_key != null && existing_key != key) {
         error += py + '在' + existing_key.toUpperCase() + '和'
           + key.toUpperCase() + '上\n';
       }
@@ -347,7 +367,7 @@ function show_results(scheme_name) {
   var speed = hits / time;
   var total_distance = result.effective_distance + result.overlap_distance;
   set_inner_html('error', result.error);
-  set_inner_html('score', Math.round(speed * 100) + '分');
+  set_inner_html('score', (speed * 100).toFixed(1) + '分');
   set_inner_html('hits', hits);
   set_inner_html('time', Math.round(time));
   set_inner_html('avg_time', (time / hits).toFixed(2));
@@ -447,7 +467,7 @@ function is_right(x) {
 }
 
 function percent(part, whole) {
-  return (part * 100.0 / whole).toFixed(2);
+  return (part * 100.0 / whole).toFixed(1);
 }
 
 function percent_str(part, whole) {
@@ -474,7 +494,6 @@ function clear_error() {
       <div class='keyboard'>
         <p/><b>双拼方案: </b>
         <label><select id='scheme-name' onchange='select_scheme()'>
-            <option value='麦优化'>麦优化</option>
             <option value='加加'>加加</option>
             <option value='小鹤'>小鹤</option>
             <option value='微软'>微软</option>
@@ -482,10 +501,14 @@ function clear_error() {
             <option value='紫光'>紫光</option>
             <option value='自然码'>自然码</option>
             <option value='' disabled='disabled'>-------</option>
+            <option value='六六'>六六</option>
+            <option value='UAI优化'>UAI优化</option>
+            <option value='' disabled='disabled'>-------</option>
             <option value='自定义'>自定义</option>
           </select>
         </label>
-        <button onclick='evaluate_scheme()'>开始评测</button>
+        <button onclick='evaluate_current_scheme()'>评测当前方案</button>
+        <button onclick='evaluate_all_schemes()'>评测所有方案</button>
 
         <table id='top-row'>
           <tr>
