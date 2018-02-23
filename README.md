@@ -1,6 +1,7 @@
 # 双拼评测工具
 
-网上比较流行的双拼评测是基于击键当量的，越舒适的键盘布局对应越小的当量。
+网上比较流行的双拼评测是基于[击键当量](https://tiansh.github.io/lqbz/sp/)
+的，越舒适的键盘布局对应越小的当量。
 比如微软双拼的单字当量是13.67，连续当量是13.86。相比较我的UAI优化方案
 的单字当量是13.12，连续当量是13.72。击键当量的好处是定量地衡量打字的
 舒适程度，但是缺点也很明显，就是这个量很不直观。曾经看到网上有人宣称某个
@@ -9,7 +10,7 @@
 量本身有问题，不利于直观地比较不同的方案。
 
 终于我写了个自认为比较满意的双拼评测工具：
-    https://macroxue.github.io/shuangpin/eval.html
+    [https://macroxue.github.io/shuangpin/eval.html]。
 这个工具是建立在一个简单的、以时间为基础的击键模型上。不同的手指的灵活
 程度，也就是移动和击键的速度，是不一样的。食指最为灵活，中指和无名指次之，
 小指最不灵活。每次击键时，手指移动的距离加上按键的深度，再除以手指的速度，
@@ -25,8 +26,7 @@
 
 # UAI优化双拼方案
 
-![UAI优化双拼方案](https://github.com/macroxue/shuangpin/blob/master/UAI优化/scheme.jpg)
-统计计算来源于https://tiansh.github.io/lqbz/sp/
+![UAI优化双拼方案](https://github.com/macroxue/shuangpin/blob/master/UAI优化/eval.png)
 
 几个假设：
  * 根据习惯，单韵母 a、o、e、i、u、ü 分别固定在 A、O、E、I、U、V 键位。
@@ -71,7 +71,7 @@ chen、gen都很顺手。x和en不可拼，所以en没有同指跨行。
  * 夏夜语，鬓袅美。
 
 如果分号键不可用，一个替代方案是把ia和ua放Z键，iang和uang放X键。代价是
-增加了qia同指跨行和qiang异指跨行。单字击键当量些许增加到13.13。
+增加了qia同指跨行和qiang异指跨行，得分从134.8降低到133.6。
 
 # 六六双拼方案
 
