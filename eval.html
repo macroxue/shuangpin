@@ -20,6 +20,13 @@ div.evaluator {
 div.test-text {
   margin-left: 20px;
 }
+div.test-text input {
+  border: 2px solid #28a;
+  width: 60px;
+}
+div.test-text div[class='hidden'] {
+  display: none
+}
 div.keyboard {
   margin-left: 20px;
 }
@@ -97,6 +104,111 @@ var column_finger = [0, 1, 2, 3, 3, 6, 6, 7, 8, 9];
 // Name of punctuations.
 var punctuation_names = {';':'FH', ',':'DH', '.':'JH', '/':'CH'};
 
+// Map from punctuations to keys.
+var punctuation_keys = {
+    '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
+};
+
+function split_pinyin(pinyin, has_zero_sheng) {
+  if (pinyin == 'ng') {
+    pinyin = 'eng';
+  }
+  var first = pinyin[0];
+  var sheng, yun;
+  if ('aoe'.includes(first)) {
+    if (has_zero_sheng) {
+      sheng = '0';
+    } else {
+      sheng = first;
+    }
+    yun = pinyin;
+  } else if ('zcs'.includes(first) && pinyin[1] == 'h') {
+    sheng = pinyin.substr(0, 2);
+    yun = pinyin.substr(2);
+  } else {
+    sheng = pinyin.substr(0, 1);
+    yun = pinyin.substr(1);
+  }
+  return {sheng:sheng, yun:yun};
+}
+
+function stat_pinyin() {
+  var input = document.getElementById('input-text').value;
+  var pinyin_freq = {};
+  var sheng_freq = {};
+  var yun_freq = {};
+  var pinyin_splits = {};
+  var total = 0;
+  for (var i = 0; i < input.length; ++i) {
+    var c = input[i].trim();
+    if (c == '') {
+      continue;
+    }
+    var punctuation = punctuation_keys[c];
+    if (punctuation != null) {
+      continue;
+    }
+    var pinyin = hanzi_pinyin[c];
+    if (pinyin == null) {
+      continue;
+    }
+    var sheng_yun = pinyin_splits[pinyin];
+    if (sheng_yun == null) {
+      sheng_yun = split_pinyin(pinyin, true);
+      pinyin_splits[pinyin] = sheng_yun;
+    }
+
+    var sheng = sheng_yun.sheng;
+    var yun = sheng_yun.yun;
+
+    ++total;
+    if (pinyin_freq[pinyin] == null) {
+      pinyin_freq[pinyin] = 1;
+    } else {
+      ++pinyin_freq[pinyin];
+    }
+    if (sheng_freq[sheng] == null) {
+      sheng_freq[sheng] = 1;
+    } else {
+      ++sheng_freq[sheng];
+    }
+    if (yun_freq[yun] == null) {
+      yun_freq[yun] = 1;
+    } else {
+      ++yun_freq[yun];
+    }
+  }
+  save_pinyin_stats('pinyin', pinyin_freq, total);
+  save_pinyin_stats('sheng', sheng_freq, total);
+  save_pinyin_stats('yun', yun_freq, total);
+  show_pinyin_stats('pinyin');
+  show_pinyin_stats('sheng');
+  show_pinyin_stats('yun');
+}
+
+function save_pinyin_stats(type, freq, total) {
+  var keys = Object.keys(freq);
+  keys.sort(function(a, b) { return freq[b] - freq[a]; });
+  var stats = '';
+  for (var i = 0; i < keys.length; ++i) {
+    var key = keys[i];
+    stats += pad(key, 6) + ' ' + percent_str(freq[key], total, 2) + '\n';
+  }
+  set_inner_html(type + '-stats-saved', stats);
+}
+
+function show_pinyin_stats(type) {
+  var filter = document.getElementById(type + '-stats-filter').value;
+  var lines = document.getElementById(type + '-stats-saved').innerHTML.split('\n');
+  var stats = '';
+  for (var i = 0; i < lines.length; ++i) {
+    if (filter == '' || lines[i].match(filter)) {
+      stats += lines[i] + '\n';
+    }
+  }
+  set_inner_html(type + '-stats', stats);
+}
+
 function initialize_on_load() {
   select_scheme();
 }
@@ -123,10 +235,10 @@ function show_keyboard(scheme_name) {
 }
 
 function evaluate_scheme(scheme_name, scheme) {
-  var strokes_and_error = convert_text_to_key_strokes(scheme);
-  var result = hit_key_strokes(strokes_and_error[0]);
+  var conversion = convert_text_to_key_strokes(scheme);
+  var result = hit_key_strokes(conversion.strokes);
   result.scheme = scheme;
-  result.error = strokes_and_error[1];
+  result.error = conversion.error;
   results[scheme_name] = result;
 }
 
@@ -174,9 +286,6 @@ function get_scheme_from_keys() {
 }
 
 function convert_text_to_key_strokes(scheme) {
-  var punctuation_map = {
-    '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
-  };
   var error = '';
 
   // Setup default mapping for single letters.
@@ -212,6 +321,7 @@ function convert_text_to_key_strokes(scheme) {
       pinyin_map[py] = key;
     }
   }
+  var has_zero_sheng = (pinyin_map['0'] != null);
 
   // Convert characters to key strokes.
   var input = document.getElementById('input-text').value;
@@ -224,7 +334,7 @@ function convert_text_to_key_strokes(scheme) {
     if (c == '') {
       continue;
     }
-    var punctuation = punctuation_map[c];
+    var punctuation = punctuation_keys[c];
     if (punctuation != null) {
       key_strokes += punctuation;
       continue;
@@ -234,32 +344,15 @@ function convert_text_to_key_strokes(scheme) {
       ignored += c;
       continue;
     }
-    if (pinyin == 'ng') {
-      pinyin = 'eng';
-    }
     if (pinyin_keys[pinyin] != null) {
       key_strokes += pinyin_keys[pinyin];
       continue;
     }
-    var first = pinyin[0];
-    var sheng, yun;
-    if ('aoe'.includes(first)) {
-      var zero_sheng = pinyin_map['0'];
-      if (zero_sheng == null) {
-        sheng = first;
-      } else {
-        sheng = '0';
-      }
-      yun = pinyin;
-    } else if ('zcs'.includes(first) && pinyin[1] == 'h') {
-      sheng = pinyin.substr(0, 2);
-      yun = pinyin.substr(2);
-    } else {
-      sheng = pinyin.substr(0, 1);
-      yun = pinyin.substr(1);
-    }
-    sheng_key = pinyin_map[sheng];
-    yun_key = pinyin_map[yun];
+    var sheng_yun = split_pinyin(pinyin, has_zero_sheng);
+    var sheng = sheng_yun.sheng;
+    var yun = sheng_yun.yun;
+    var sheng_key = pinyin_map[sheng];
+    var yun_key = pinyin_map[yun];
     if (sheng_key == null || yun_key == null) {
       error += '无法打出"' + c + '"的拼音"' + pinyin
         + '"="' + sheng + '"+"' + yun + '"\n';
@@ -277,7 +370,7 @@ function convert_text_to_key_strokes(scheme) {
     }
   }
   // console.log('忽略: ' + ignored);
-  return [key_strokes, error];
+  return {strokes:key_strokes, error:error};
 }
 
 function hit_key_strokes(key_strokes) {
@@ -467,15 +560,22 @@ function is_right(x) {
   return x >= 5;
 }
 
-function percent(part, whole) {
+function percent(part, whole, precision = 1) {
   if (whole == 0) {
     return 0;
   }
-  return (part * 100.0 / whole).toFixed(1);
+  return (part * 100.0 / whole).toFixed(precision);
 }
 
-function percent_str(part, whole) {
-  return percent(part, whole) + '%';
+function percent_str(part, whole, precision = 1) {
+  return percent(part, whole, precision) + '%';
+}
+
+function pad(string, length) {
+  while (string.length < length) {
+    string += ' ';
+  }
+  return string;
 }
 
 function clear_error() {
@@ -489,10 +589,43 @@ function clear_error() {
       <hr/>
 
       <div class='test-text'>
-        <p/><b>测试文稿: </b><br/>
-        <textarea rows='6' cols='80' id='input-text'>
-          在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
-        </textarea>
+        <table>
+          <tr>
+            <td>
+              <p/><b>测试文稿: </b>
+              <button id='stat' onclick='stat_pinyin()'>统计拼音频率</button>
+              <br/>
+              <textarea rows='6' cols='80' id='input-text'>
+                在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。
+                处理几十万字不成问题。
+              </textarea>
+            </td>
+            <td>
+              <p/><b>拼音: </b>
+              <input id='pinyin-stats-filter' onchange='show_pinyin_stats("pinyin")'/>
+              <br/>
+              <textarea readonly rows='6' cols='14' id='pinyin-stats'>
+              </textarea>
+              <div class='hidden' id='pinyin-stats-saved'></div>
+            </td>
+            <td>
+              <p/><b>声母: </b>
+              <input id='sheng-stats-filter' onchange='show_pinyin_stats("sheng")'/>
+              <br/>
+              <textarea readonly rows='6' cols='14' id='sheng-stats'>
+              </textarea>
+              <div class='hidden' id='sheng-stats-saved'></div>
+            </td>
+            <td>
+              <p/><b>韵母: </b>
+              <input id='yun-stats-filter' onchange='show_pinyin_stats("yun")'/>
+              <br/>
+              <textarea readonly rows='6' cols='14' id='yun-stats'>
+              </textarea>
+              <div class='hidden' id='yun-stats-saved'></div>
+            </td>
+          </tr>
+        </table>
       </div>
 
       <div class='keyboard'>
@@ -513,7 +646,7 @@ function clear_error() {
         </label>
         <button onclick='evaluate_current_scheme()'>评测当前方案</button>
         <button onclick='evaluate_all_schemes()'>评测所有方案</button>
-
+        <br/>
         <table id='top-row'>
           <tr>
             <td>Q<div id='heat_Q'></div><p/><input id='Q'/></td>
@@ -559,7 +692,8 @@ function clear_error() {
       </div>
 
       <div class='result' id='result'>
-        <p/><b>评测结果：</b> <b id='score'></b> &nbsp; <b id='error'></b><br/>
+        <p/><b>评测结果：</b> <b id='score'></b> &nbsp; <b id='error'></b>
+        <br/>
         <table>
           <tr>
             <td>
@@ -673,8 +807,8 @@ function clear_error() {
             食指最灵活，中指和无名指次之，小指最不灵活。
           </li>
           <li>
-            两手交替击键时，一手击键的同时另一手可以移动到位，这样
-            同时移动不被计时。
+            两手交替击键时，一手击键的同时另一手可以移动到位，这样的
+            重叠移动不被计时。
           </li>
           <li>
             同手连击时，第二击之前的移动是被计时的。
