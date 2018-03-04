@@ -34,11 +34,6 @@ div.keyboard input {
   border: 2px solid #28a;
   width: 80px;
 }
-div.keyboard div {
-  border: 0px;
-  width: 50px;
-  float: right;
-}
 div.keyboard table, div.keyboard th, div.keyboard td {
   background: #fed;
   border: 2px solid #243;
@@ -85,7 +80,7 @@ var schemes = {
 };
 
 // Evaluation results of all schemes.
-var results = {};
+var results = {qwerty:{}, dvorak:{}};
 
 // QWERTY keyboard layout. key: [x, y] or [column, row].
 var qwerty = {
@@ -97,15 +92,26 @@ var qwerty = {
   'n':[5,2], 'm':[6,2], ',':[7,2], '.':[8,2], '/':[9,2],
 };
 
+// Dvorak keyboard layout.
+var dvorak = {
+  '/':[0,0], ',':[1,0], '.':[2,0], 'p':[3,0], 'y':[4,0],
+  'f':[5,0], 'g':[6,0], 'c':[7,0], 'r':[8,0], 'l':[9,0],
+  'a':[0,1], 'o':[1,1], 'e':[2,1], 'u':[3,1], 'i':[4,1],
+  'd':[5,1], 'h':[6,1], 't':[7,1], 'n':[8,1], 's':[9,1],
+  ';':[0,2], 'q':[1,2], 'j':[2,2], 'k':[3,2], 'x':[4,2],
+  'b':[5,2], 'm':[6,2], 'w':[7,2], 'v':[8,2], 'z':[9,2],
+};
+
 // Column assignment to fingers.
 //                   0  1  2  3  4  5  6  7  8  9
 var column_finger = [0, 1, 2, 3, 3, 6, 6, 7, 8, 9];
 
-// Name of punctuations.
-var punctuation_names = {';':'FH', ',':'DH', '.':'JH', '/':'CH'};
+// Maps between  punctuations to keys.
+var punctuation_names = {';':'FH', ',':'DH', '.':'JH', '/':'CH', '\'':'YH'};
+var punctuation_keys = {'FH':';', 'DH':',', 'JH':'.', 'CH':'/', 'YH':'\''};
 
-// Map from punctuations to keys.
-var punctuation_keys = {
+// Punctuations from input text.
+var punctuations = {
     '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
 };
 
@@ -144,7 +150,7 @@ function stat_pinyin() {
     if (c == '') {
       continue;
     }
-    var punctuation = punctuation_keys[c];
+    var punctuation = punctuations[c];
     if (punctuation != null) {
       continue;
     }
@@ -215,31 +221,72 @@ function initialize_on_load() {
 
 function select_scheme() {
   var scheme_name = document.getElementById('scheme-name').value;
-  show_keyboard('empty');
-  show_keyboard(scheme_name);
+  show_layout();
+  show_scheme('empty');
+  show_scheme(scheme_name);
   show_results(scheme_name);
 }
 
-function show_keyboard(scheme_name) {
+function get_layout() {
+  var layout_name = document.getElementById('layout-name').value;
+  if (layout_name == 'qwerty') {
+    return qwerty;
+  } else if (layout_name == 'dvorak') {
+    return dvorak;
+  }
+}
+
+function key_to_key_name(key) {
+  if (punctuation_names[key] == null) {
+    return key.toUpperCase();
+  } else {
+    return punctuation_names[key].toUpperCase();
+  }
+}
+
+function key_name_to_key(name) {
+  if (punctuation_keys[name] == null) {
+    return name.toLowerCase();
+  } else {
+    return punctuation_keys[name];
+  }
+}
+
+function show_layout() {
+  var layout = get_layout();
+  for (var key in layout) {
+    var x = layout[key][0];
+    var y = layout[key][1];
+    set_inner_html('key_' + y + x, key.toUpperCase());
+  }
+}
+
+function show_scheme(scheme_name) {
+  var layout_name = document.getElementById('layout-name').value;
   var scheme;
-  if (results[scheme_name] == null) {
+  if (results[layout_name][scheme_name] == null) {
     scheme = schemes[scheme_name];
   } else {
-    scheme = results[scheme_name].scheme;
+    scheme = results[layout_name][scheme_name].scheme;
   }
+  var layout = get_layout();
   var assignments = scheme.split(',');
   for (var i = 0; i < assignments.length; ++i) {
     var items = assignments[i].split('=');
-    document.getElementById(items[0]).value = items[1];
+    var key = key_name_to_key(items[0]);
+    var x = layout[key][0];
+    var y = layout[key][1];
+    document.getElementById('py_' + y + x).value = items[1];
   }
 }
 
 function evaluate_scheme(scheme_name, scheme) {
+  var layout_name = document.getElementById('layout-name').value;
   var conversion = convert_text_to_key_strokes(scheme);
   var result = hit_key_strokes(conversion.strokes);
   result.scheme = scheme;
   result.error = conversion.error;
-  results[scheme_name] = result;
+  results[layout_name][scheme_name] = result;
 }
 
 function evaluate_current_scheme() {
@@ -250,10 +297,11 @@ function evaluate_current_scheme() {
 }
 
 function evaluate_all_schemes() {
+  var layout_name = document.getElementById('layout-name').value;
   var current_scheme_name = document.getElementById('scheme-name').value;
   for (var scheme_name in schemes) {
     var scheme = schemes[scheme_name];
-    var result = results[scheme_name];
+    var result = results[layout_name][scheme_name];
     if (result != null) {
       scheme = result.scheme;
     }
@@ -264,19 +312,14 @@ function evaluate_all_schemes() {
   }
 }
 
-function get_key_name(key) {
-  if (punctuation_names[key] == null) {
-    return key.toUpperCase();
-  } else {
-    return punctuation_names[key].toUpperCase();
-  }
-}
-
 function get_scheme_from_keys() {
   var scheme = '';
-  for (var key in qwerty) {
-    var key_name = get_key_name(key);
-    var pinyin = document.getElementById(key_name).value;
+  var layout = get_layout();
+  for (var key in layout) {
+    var key_name = key_to_key_name(key);
+    var x = layout[key][0];
+    var y = layout[key][1];
+    var pinyin = document.getElementById('py_' + y + x).value;
     if (scheme != '') {
       scheme += ',';
     }
@@ -296,17 +339,19 @@ function convert_text_to_key_strokes(scheme) {
   }
 
   // Read scheme mapping.
-  punctuations = {'fh':';', 'dh':',', 'jh':'.', 'ch':'/'};
   var assignments = scheme.split(',');
   for (var i = 0; i < assignments.length; ++i) {
     var items = assignments[i].split('=');
-    var key = items[0].toLowerCase(0);
+    var key = items[0];
     if (key.length > 1) {
-      if (punctuations[key] == null) {
+      if (punctuation_keys[key] == null) {
         continue;
       }
-      key = punctuations[key];
+      key = punctuation_keys[key];
+    } else {
+      key = key.toLowerCase();
     }
+
     var pinyin = items[1].split(' ');
     for (var j = 0; j < pinyin.length; ++j) {
       var py = pinyin[j].trim();
@@ -334,7 +379,7 @@ function convert_text_to_key_strokes(scheme) {
     if (c == '') {
       continue;
     }
-    var punctuation = punctuation_keys[c];
+    var punctuation = punctuations[c];
     if (punctuation != null) {
       key_strokes += punctuation;
       continue;
@@ -402,9 +447,10 @@ function hit_key_strokes(key_strokes) {
   var right_hand_pos = [0, 0];
 
   var last_column = 0;
+  var layout = get_layout();
   for (var i = 0; i < key_strokes.length; ++i) {
     var key = key_strokes[i];
-    var coordinates = qwerty[key];
+    var coordinates = layout[key];
     var x = coordinates[0], y = coordinates[1];
 
     // Calculate distance to move.
@@ -447,7 +493,8 @@ function hit_key_strokes(key_strokes) {
 }
 
 function show_results(scheme_name) {
-  var result = results[scheme_name];
+  var layout_name = document.getElementById('layout-name').value;
+  var result = results[layout_name][scheme_name];
   show_heat_map(result);
   if (result == null) {
     hide_element('result');
@@ -527,14 +574,15 @@ function set_inner_html(id, value) {
 
 function show_heat_map(result) {
   // Update keyboard heat map.
-  for (var key in qwerty) {
-    var cell = document.getElementById('heat_' + get_key_name(key));
+  var layout = get_layout();
+  for (var key in layout) {
+    var x = layout[key][0];
+    var y = layout[key][1];
+    var cell = document.getElementById('heat_' + y + x);
     if (result == null) {
-      cell.innerHTML = '';
+      cell.innerHTML = '&nbsp;';
       cell.style.backgroundColor = 'inherit';
     } else {
-      var x = qwerty[key][0];
-      var y = qwerty[key][1];
       var heat = percent(result.heat_map[y][x], result.hits);
       cell.innerHTML = heat + '%';
       var green = Math.round(255 - 255 * Math.min(heat, 10) / 10);
@@ -630,7 +678,8 @@ function clear_error() {
 
       <div class='keyboard'>
         <p/><b>双拼方案: </b>
-        <label><select id='scheme-name' onchange='select_scheme()'>
+        <label>
+          <select id='scheme-name' onchange='select_scheme()'>
             <option value='加加'>加加</option>
             <option value='小鹤'>小鹤</option>
             <option value='微软'>微软</option>
@@ -646,47 +695,55 @@ function clear_error() {
         </label>
         <button onclick='evaluate_current_scheme()'>评测当前方案</button>
         <button onclick='evaluate_all_schemes()'>评测所有方案</button>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+        <b>键盘布局: </b>
+        <label>
+          <select id='layout-name' onchange='select_scheme()'>
+            <option value='qwerty'>Qwerty</option>
+            <option value='dvorak'>Dvorak</option>
+          </select>
+        </label>
         <br/>
         <table id='top-row'>
           <tr>
-            <td>Q<div id='heat_Q'></div><p/><input id='Q'/></td>
-            <td>W<div id='heat_W'></div><p/><input id='W'/></td>
-            <td>E<div id='heat_E'></div><p/><input id='E'/></td>
-            <td>R<div id='heat_R'></div><p/><input id='R'/></td>
-            <td>T<div id='heat_T'></div><p/><input id='T'/></td>
-            <td>Y<div id='heat_Y'></div><p/><input id='Y'/></td>
-            <td>U<div id='heat_U'></div><p/><input id='U'/></td>
-            <td>I<div id='heat_I'></div><p/><input id='I'/></td>
-            <td>O<div id='heat_O'></div><p/><input id='O'/></td>
-            <td>P<div id='heat_P'></div><p/><input id='P'/></td>
+            <td><div id='key_00'></div><div id='heat_00'></div><br/><input id='py_00'/></td>
+            <td><div id='key_01'></div><div id='heat_01'></div><br/><input id='py_01'/></td>
+            <td><div id='key_02'></div><div id='heat_02'></div><br/><input id='py_02'/></td>
+            <td><div id='key_03'></div><div id='heat_03'></div><br/><input id='py_03'/></td>
+            <td><div id='key_04'></div><div id='heat_04'></div><br/><input id='py_04'/></td>
+            <td><div id='key_05'></div><div id='heat_05'></div><br/><input id='py_05'/></td>
+            <td><div id='key_06'></div><div id='heat_06'></div><br/><input id='py_06'/></td>
+            <td><div id='key_07'></div><div id='heat_07'></div><br/><input id='py_07'/></td>
+            <td><div id='key_08'></div><div id='heat_08'></div><br/><input id='py_08'/></td>
+            <td><div id='key_09'></div><div id='heat_09'></div><br/><input id='py_09'/></td>
           </tr>
         </table>
         <table id='middle-row'>
           <tr>
-            <td>A<div id='heat_A'></div><p/><input id='A'/></td>
-            <td>S<div id='heat_S'></div><p/><input id='S'/></td>
-            <td>D<div id='heat_D'></div><p/><input id='D'/></td>
-            <td>F<div id='heat_F'></div><p/><input id='F'/></td>
-            <td>G<div id='heat_G'></div><p/><input id='G'/></td>
-            <td>H<div id='heat_H'></div><p/><input id='H'/></td>
-            <td>J<div id='heat_J'></div><p/><input id='J'/></td>
-            <td>K<div id='heat_K'></div><p/><input id='K'/></td>
-            <td>L<div id='heat_L'></div><p/><input id='L'/></td>
-            <td>;<div id='heat_FH'></div><p/><input id='FH'/></td>
+            <td><div id='key_10'></div><div id='heat_10'></div><br/><input id='py_10'/></td>
+            <td><div id='key_11'></div><div id='heat_11'></div><br/><input id='py_11'/></td>
+            <td><div id='key_12'></div><div id='heat_12'></div><br/><input id='py_12'/></td>
+            <td><div id='key_13'></div><div id='heat_13'></div><br/><input id='py_13'/></td>
+            <td><div id='key_14'></div><div id='heat_14'></div><br/><input id='py_14'/></td>
+            <td><div id='key_15'></div><div id='heat_15'></div><br/><input id='py_15'/></td>
+            <td><div id='key_16'></div><div id='heat_16'></div><br/><input id='py_16'/></td>
+            <td><div id='key_17'></div><div id='heat_17'></div><br/><input id='py_17'/></td>
+            <td><div id='key_18'></div><div id='heat_18'></div><br/><input id='py_18'/></td>
+            <td><div id='key_19'></div><div id='heat_19'></div><br/><input id='py_19'/></td>
           </tr>
         </table>
         <table id='bottom-row'>
           <tr>
-            <td>Z<div id='heat_Z'></div><p/><input id='Z'/></td>
-            <td>X<div id='heat_X'></div><p/><input id='X'/></td>
-            <td>C<div id='heat_C'></div><p/><input id='C'/></td>
-            <td>V<div id='heat_V'></div><p/><input id='V'/></td>
-            <td>B<div id='heat_B'></div><p/><input id='B'/></td>
-            <td>N<div id='heat_N'></div><p/><input id='N'/></td>
-            <td>M<div id='heat_M'></div><p/><input id='M'/></td>
-            <td>,<div id='heat_DH'></div><p/><input id='DH'/></td>
-            <td>.<div id='heat_JH'></div><p/><input id='JH'/></td>
-            <td>/<div id='heat_CH'></div><p/><input id='CH'/></td>
+            <td><div id='key_20'></div><div id='heat_20'></div><br/><input id='py_20'/></td>
+            <td><div id='key_21'></div><div id='heat_21'></div><br/><input id='py_21'/></td>
+            <td><div id='key_22'></div><div id='heat_22'></div><br/><input id='py_22'/></td>
+            <td><div id='key_23'></div><div id='heat_23'></div><br/><input id='py_23'/></td>
+            <td><div id='key_24'></div><div id='heat_24'></div><br/><input id='py_24'/></td>
+            <td><div id='key_25'></div><div id='heat_25'></div><br/><input id='py_25'/></td>
+            <td><div id='key_26'></div><div id='heat_26'></div><br/><input id='py_26'/></td>
+            <td><div id='key_27'></div><div id='heat_27'></div><br/><input id='py_27'/></td>
+            <td><div id='key_28'></div><div id='heat_28'></div><br/><input id='py_28'/></td>
+            <td><div id='key_29'></div><div id='heat_29'></div><br/><input id='py_29'/></td>
           </tr>
         </table>
       </div>
