@@ -80,27 +80,34 @@ var schemes = {
 };
 
 // Evaluation results of all schemes.
-var results = {qwerty:{}, dvorak:{}};
+var results = {qwerty:{}, dvorak:{}, colemak:{}};
 
-// QWERTY keyboard layout. key: [x, y] or [column, row].
-var qwerty = {
-  'q':[0,0], 'w':[1,0], 'e':[2,0], 'r':[3,0], 't':[4,0],
-  'y':[5,0], 'u':[6,0], 'i':[7,0], 'o':[8,0], 'p':[9,0],
-  'a':[0,1], 's':[1,1], 'd':[2,1], 'f':[3,1], 'g':[4,1],
-  'h':[5,1], 'j':[6,1], 'k':[7,1], 'l':[8,1], ';':[9,1],
-  'z':[0,2], 'x':[1,2], 'c':[2,2], 'v':[3,2], 'b':[4,2],
-  'n':[5,2], 'm':[6,2], ',':[7,2], '.':[8,2], '/':[9,2],
-};
-
-// Dvorak keyboard layout.
-var dvorak = {
-  '/':[0,0], ',':[1,0], '.':[2,0], 'p':[3,0], 'y':[4,0],
-  'f':[5,0], 'g':[6,0], 'c':[7,0], 'r':[8,0], 'l':[9,0],
-  'a':[0,1], 'o':[1,1], 'e':[2,1], 'u':[3,1], 'i':[4,1],
-  'd':[5,1], 'h':[6,1], 't':[7,1], 'n':[8,1], 's':[9,1],
-  ';':[0,2], 'q':[1,2], 'j':[2,2], 'k':[3,2], 'x':[4,2],
-  'b':[5,2], 'm':[6,2], 'w':[7,2], 'v':[8,2], 'z':[9,2],
-};
+var keyboard_layouts = {
+qwerty : {
+           'q':[0,0], 'w':[1,0], 'e':[2,0], 'r':[3,0], 't':[4,0],
+           'y':[5,0], 'u':[6,0], 'i':[7,0], 'o':[8,0], 'p':[9,0],
+           'a':[0,1], 's':[1,1], 'd':[2,1], 'f':[3,1], 'g':[4,1],
+           'h':[5,1], 'j':[6,1], 'k':[7,1], 'l':[8,1], ';':[9,1],
+           'z':[0,2], 'x':[1,2], 'c':[2,2], 'v':[3,2], 'b':[4,2],
+           'n':[5,2], 'm':[6,2], ',':[7,2], '.':[8,2], '/':[9,2],
+         },
+dvorak : {
+           '/':[0,0], ',':[1,0], '.':[2,0], 'p':[3,0], 'y':[4,0],
+           'f':[5,0], 'g':[6,0], 'c':[7,0], 'r':[8,0], 'l':[9,0],
+           'a':[0,1], 'o':[1,1], 'e':[2,1], 'u':[3,1], 'i':[4,1],
+           'd':[5,1], 'h':[6,1], 't':[7,1], 'n':[8,1], 's':[9,1],
+           ';':[0,2], 'q':[1,2], 'j':[2,2], 'k':[3,2], 'x':[4,2],
+           'b':[5,2], 'm':[6,2], 'w':[7,2], 'v':[8,2], 'z':[9,2],
+         },
+colemak : {
+            'q':[0,0], 'w':[1,0], 'f':[2,0], 'p':[3,0], 'g':[4,0],
+            'j':[5,0], 'l':[6,0], 'u':[7,0], 'y':[8,0], ';':[9,0],
+            'a':[0,1], 'r':[1,1], 's':[2,1], 't':[3,1], 'd':[4,1],
+            'h':[5,1], 'n':[6,1], 'e':[7,1], 'i':[8,1], 'o':[9,1],
+            'z':[0,2], 'x':[1,2], 'c':[2,2], 'v':[3,2], 'b':[4,2],
+            'k':[5,2], 'm':[6,2], ',':[7,2], '.':[8,2], '/':[9,2],
+          }
+}
 
 // Column assignment to fingers.
 //                   0  1  2  3  4  5  6  7  8  9
@@ -229,11 +236,7 @@ function select_scheme() {
 
 function get_layout() {
   var layout_name = document.getElementById('layout-name').value;
-  if (layout_name == 'qwerty') {
-    return qwerty;
-  } else if (layout_name == 'dvorak') {
-    return dvorak;
-  }
+  return keyboard_layouts[layout_name];
 }
 
 function key_to_key_name(key) {
@@ -701,6 +704,7 @@ function clear_error() {
           <select id='layout-name' onchange='select_scheme()'>
             <option value='qwerty'>Qwerty</option>
             <option value='dvorak'>Dvorak</option>
+            <option value='colemak'>Colemak</option>
           </select>
         </label>
         <br/>
