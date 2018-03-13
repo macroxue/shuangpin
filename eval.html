@@ -33,7 +33,7 @@ div.test-text td[class='stats'] {
   background: transparent;
   display: none
 }
-div.test-text td[class='stats-saved'] {
+div.test-text div[class='stats-saved'] {
   display: none
 }
 div.keyboard {
@@ -682,13 +682,11 @@ function clear_error() {
               <textarea readonly rows='6' cols='14' id='yun-stats'>
               </textarea>
             </td>
-            <td class='stats-saved'>
-              <div id='pinyin-stats-saved'></div>
-              <div id='sheng-stats-saved'></div>
-              <div id='yun-stats-saved'></div>
-            </td>
           </tr>
         </table>
+        <div class='stats-saved' id='pinyin-stats-saved'></div>
+        <div class='stats-saved' id='sheng-stats-saved'></div>
+        <div class='stats-saved' id='yun-stats-saved'></div>
       </div>
 
       <div class='keyboard'>
