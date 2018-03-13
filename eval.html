@@ -24,7 +24,16 @@ div.test-text input {
   border: 2px solid #28a;
   width: 60px;
 }
-div.test-text div[class='hidden'] {
+div.test-text textarea {
+  position: relative;
+  top: 4px;
+}
+div.test-text td[class='stats'] {
+  border: none;
+  background: transparent;
+  display: none
+}
+div.test-text td[class='stats-saved'] {
   display: none
 }
 div.keyboard {
@@ -220,6 +229,7 @@ function show_pinyin_stats(type) {
     }
   }
   set_inner_html(type + '-stats', stats);
+  show_element(type + '-stats-cell');
 }
 
 function initialize_on_load() {
@@ -568,7 +578,7 @@ function hide_element(id) {
 }
 
 function show_element(id) {
-  document.getElementById(id).style.display = 'block';
+  document.getElementById(id).style.display = 'inline-block';
 }
 
 function set_inner_html(id, value) {
@@ -651,29 +661,31 @@ function clear_error() {
                 处理几十万字不成问题。
               </textarea>
             </td>
-            <td>
+            <td class='stats' id='pinyin-stats-cell'>
               <p/><b>拼音: </b>
               <input id='pinyin-stats-filter' onchange='show_pinyin_stats("pinyin")'/>
               <br/>
               <textarea readonly rows='6' cols='14' id='pinyin-stats'>
               </textarea>
-              <div class='hidden' id='pinyin-stats-saved'></div>
             </td>
-            <td>
+            <td class='stats' id='sheng-stats-cell'>
               <p/><b>声母: </b>
               <input id='sheng-stats-filter' onchange='show_pinyin_stats("sheng")'/>
               <br/>
               <textarea readonly rows='6' cols='14' id='sheng-stats'>
               </textarea>
-              <div class='hidden' id='sheng-stats-saved'></div>
             </td>
-            <td>
+            <td class='stats' id='yun-stats-cell'>
               <p/><b>韵母: </b>
               <input id='yun-stats-filter' onchange='show_pinyin_stats("yun")'/>
               <br/>
               <textarea readonly rows='6' cols='14' id='yun-stats'>
               </textarea>
-              <div class='hidden' id='yun-stats-saved'></div>
+            </td>
+            <td class='stats-saved'>
+              <div id='pinyin-stats-saved'></div>
+              <div id='sheng-stats-saved'></div>
+              <div id='yun-stats-saved'></div>
             </td>
           </tr>
         </table>
