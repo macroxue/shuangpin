@@ -66,6 +66,10 @@ div.result {
 div.result #error {
   background: #ff0;
 }
+div.result textarea {
+  position: relative;
+  top: 4px;
+}
 table[class='stats'], td[class='stats'] {
   background: #fed;
   border: 1px solid #243;
@@ -122,6 +126,14 @@ colemak : {
 //                   0  1  2  3  4  5  6  7  8  9
 var column_finger = [0, 1, 2, 3, 3, 6, 6, 7, 8, 9];
 
+// Finger speed, assuming index = 1.
+//                pinky ring mid index thumb thumb index mid ring pinky
+//                    0    1    2    3    4    5    6    7    8    9
+var finger_speed = [0.6, 0.9, 0.9, 1.0, 1.0, 1.0, 1.0, 0.9, 0.9, 0.6];
+
+// The depth that a key needs to be pressed down.
+var press_depth = 0.2;
+
 // Maps between  punctuations to keys.
 var punctuation_names = {';':'FH', ',':'DH', '.':'JH', '/':'CH', '\'':'YH'};
 var punctuation_keys = {'FH':';', 'DH':',', 'JH':'.', 'CH':'/', 'YH':'\''};
@@ -154,6 +166,34 @@ function split_pinyin(pinyin, has_zero_sheng) {
   return {sheng:sheng, yun:yun};
 }
 
+var sheng_yun_freq = {};
+var yun_sheng_freq = {};
+
+function update_sheng_yun_freq(sheng, yun) {
+  if (sheng_yun_freq[sheng] == null) {
+    sheng_yun_freq[sheng] = {}
+  }
+  if (sheng_yun_freq[sheng][yun] == null) {
+    sheng_yun_freq[sheng][yun] = 1;
+  } else {
+    ++sheng_yun_freq[sheng][yun];
+  }
+}
+
+function update_yun_sheng_freq(yun, sheng) {
+  if (yun == '') {
+    return;
+  }
+  if (yun_sheng_freq[yun] == null) {
+    yun_sheng_freq[yun] = {}
+  }
+  if (yun_sheng_freq[yun][sheng] == null) {
+    yun_sheng_freq[yun][sheng] = 1;
+  } else {
+    ++yun_sheng_freq[yun][sheng];
+  }
+}
+
 function stat_pinyin() {
   var input = document.getElementById('input-text').value;
   var pinyin_freq = {};
@@ -161,6 +201,11 @@ function stat_pinyin() {
   var yun_freq = {};
   var pinyin_splits = {};
   var total = 0;
+
+  var last_yun = '';
+  sheng_yun_freq = {};
+  yun_sheng_freq = {};
+
   for (var i = 0; i < input.length; ++i) {
     var c = input[i].trim();
     if (c == '') {
@@ -168,6 +213,8 @@ function stat_pinyin() {
     }
     var punctuation = punctuations[c];
     if (punctuation != null) {
+      update_yun_sheng_freq(last_yun, punctuation);
+      last_yun = punctuation;
       continue;
     }
     var pinyin = hanzi_pinyin[c];
@@ -199,6 +246,10 @@ function stat_pinyin() {
     } else {
       ++yun_freq[yun];
     }
+
+    update_sheng_yun_freq(sheng, yun);
+    update_yun_sheng_freq(last_yun, sheng);
+    last_yun = yun;
   }
   save_pinyin_stats('pinyin', pinyin_freq, total);
   save_pinyin_stats('sheng', sheng_freq, total);
@@ -242,6 +293,7 @@ function select_scheme() {
   show_scheme('empty');
   show_scheme(scheme_name);
   show_results(scheme_name);
+  document.getElementById('suggestion').value = '';
 }
 
 function get_layout() {
@@ -304,7 +356,7 @@ function evaluate_scheme(scheme_name, scheme) {
 
 function evaluate_current_scheme() {
   var scheme_name = document.getElementById('scheme-name').value;
-  var scheme = get_scheme_from_keys();
+  var scheme = get_scheme_from_keyboard();
   evaluate_scheme(scheme_name, scheme);
   show_results(scheme_name);
 }
@@ -325,7 +377,7 @@ function evaluate_all_schemes() {
   }
 }
 
-function get_scheme_from_keys() {
+function get_scheme_from_keyboard() {
   var scheme = '';
   var layout = get_layout();
   for (var key in layout) {
@@ -341,7 +393,7 @@ function get_scheme_from_keys() {
   return scheme;
 }
 
-function convert_text_to_key_strokes(scheme) {
+function read_pinyin_map_from_scheme(scheme) {
   var error = '';
 
   // Setup default mapping for single letters.
@@ -379,6 +431,13 @@ function convert_text_to_key_strokes(scheme) {
       pinyin_map[py] = key;
     }
   }
+  return {pinyin_map: pinyin_map, error:error};
+}
+
+function convert_text_to_key_strokes(scheme) {
+  var pm = read_pinyin_map_from_scheme(scheme);
+  var pinyin_map = pm.pinyin_map;
+  var error = pm.error;
   var has_zero_sheng = (pinyin_map['0'] != null);
 
   // Convert characters to key strokes.
@@ -432,14 +491,6 @@ function convert_text_to_key_strokes(scheme) {
 }
 
 function hit_key_strokes(key_strokes) {
-  // Finger speed, assuming index = 1.
-  //                pinky ring mid index thumb thumb index mid ring pinky
-  //                    0    1    2    3    4    5    6    7    8    9
-  var finger_speed = [0.6, 0.9, 0.9, 1.0, 1.0, 1.0, 1.0, 0.9, 0.9, 0.6];
-
-  // The depth that a key needs to be pressed down.
-  var press_depth = 0.2;
-
   // Statistics.
   var result = {};
   result.hits = key_strokes.length;
@@ -642,6 +693,136 @@ function pad(string, length) {
 function clear_error() {
   set_inner_html('error', '');
 }
+
+function total_pairs(pair_freq) {
+  var total = 0;
+  for (first in pair_freq) {
+    for (second in pair_freq[first]) {
+      total += pair_freq[first][second];
+    }
+  }
+  return total;
+}
+
+function fast_evaluate_scheme(pinyin_map, pair_freq) {
+  var layout = get_layout();
+  var time = 0;
+  for (first in pair_freq) {
+    for (second in pair_freq[first]) {
+      var first_key = pinyin_map[first];
+      if (first == '0' && first_key == null) {
+        first_key = second[0];
+      }
+      if (first_key == null) {
+        first_key = first;
+      }
+      var second_key = pinyin_map[second];
+      if (second == '0' && second_key == null) {
+        second_key = 'a';
+      }
+      if (second_key == null) {
+        second_key = second;
+      }
+      var x0 = layout[first_key][0];
+      var y0 = layout[first_key][1];
+      var x1 = layout[second_key][0];
+      var y1 = layout[second_key][1];
+
+      var f0 = column_finger[x0];
+      var f1 = column_finger[x1];
+      var same_hand = is_left(x0) == is_left(x1);
+
+      var d = press_depth;
+      if (f0 == f1) {
+        d += distance(x0, y0, x1, y1);
+      } else if (same_hand) {
+        d += distance(x0 + f1 - f0, y0, x1, y1);
+      }
+
+      var hit_time = d / finger_speed[f1];
+      time += hit_time * pair_freq[first][second];
+    }
+  }
+  return time;
+}
+
+function improve_scheme() {
+  stat_pinyin();
+
+  var scheme = get_scheme_from_keyboard();
+  var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+  var baseline = fast_evaluate_scheme(pinyin_map, sheng_yun_freq)
+    + fast_evaluate_scheme(pinyin_map, yun_sheng_freq);
+
+  var fixed_keys = 'aoeiuv,./';
+  var layout = get_layout();
+  var total_hits = total_pairs(sheng_yun_freq) + total_pairs(yun_sheng_freq);
+  var swap_scores = {};
+  for (var first in layout) {
+    if (fixed_keys.includes(first)) {
+      continue;
+    }
+    var first_pinyin = [];
+    for (var pinyin in pinyin_map) {
+      if (pinyin_map[pinyin] == first && first != pinyin) {
+        first_pinyin.push(pinyin);
+      }
+    }
+    if (first_pinyin == []) {
+      continue;
+    }
+    for (var second in layout) {
+      if (first >= second || fixed_keys.includes(second)) {
+        continue;
+      }
+      var second_pinyin = [];
+      for (var pinyin in pinyin_map) {
+        if (pinyin_map[pinyin] == second && second != pinyin) {
+          second_pinyin.push(pinyin);
+        }
+      }
+      if (second_pinyin == []) {
+        continue;
+      }
+      // Swap assignments.
+      for (var i = 0; i < first_pinyin.length; ++i) {
+        pinyin_map[first_pinyin[i]] = second;
+      }
+      for (var i = 0; i < second_pinyin.length; ++i) {
+        pinyin_map[second_pinyin[i]] = first;
+      }
+
+      var time = fast_evaluate_scheme(pinyin_map, sheng_yun_freq)
+        + fast_evaluate_scheme(pinyin_map, yun_sheng_freq);
+      if (time < baseline) {
+        var score = ((baseline - time) / total_hits * 100).toFixed(2);
+        var swap = first.toUpperCase() + first_pinyin + ' 和 ' +
+                   second.toUpperCase() + second_pinyin;
+        swap_scores[swap] = score;
+      }
+
+      // Undo swap.
+      for (var i = 0; i < first_pinyin.length; ++i) {
+        pinyin_map[first_pinyin[i]] = first;
+      }
+      for (var i = 0; i < second_pinyin.length; ++i) {
+        pinyin_map[second_pinyin[i]] = second;
+      }
+    }
+  }
+  var suggestions = '';
+  var swaps = Object.keys(swap_scores);
+  if (swaps.length > 0) {
+  swaps.sort(function(a, b) { return swap_scores[b] - swap_scores[a]; });
+  for (var i = 0; i < swaps.length; ++i) {
+    suggestions += swap_scores[swaps[i]] +  ': 交换 ' + swaps[i] + '\n';
+  }
+  } else {
+    suggestions = '该方案已是局部最优';
+  }
+  document.getElementById('suggestion').value = suggestions;
+}
+
     </script>
   </head>
   <body onload='initialize_on_load()'>
@@ -763,106 +944,122 @@ function clear_error() {
       </div>
 
       <div class='result' id='result'>
-        <p/><b>评测结果：</b> <b id='score'></b> &nbsp; <b id='error'></b>
-        <br/>
         <table>
           <tr>
             <td>
-              <table class='stats'>
+              <p/><b>评测结果：</b> <b id='score'></b> &nbsp; <b id='error'></b>
+              <br/>
+              <table>
                 <tr>
-                  <th>小指</th><th>无名指</th><th>中指</th><th>食指</th><th>左手</th>
-                </tr>
-                <tr>
-                  <td class='stats' id='finger_0'></td>
-                  <td class='stats' id='finger_1'></td>
-                  <td class='stats' id='finger_2'></td>
-                  <td class='stats' id='finger_3'></td>
-                  <td class='stats' id='left_hand'></td>
+                  <td>
+                    <table class='stats'>
+                      <tr>
+                        <th>小指</th><th>无名指</th><th>中指</th><th>食指</th><th>左手</th>
+                      </tr>
+                      <tr>
+                        <td class='stats' id='finger_0'></td>
+                        <td class='stats' id='finger_1'></td>
+                        <td class='stats' id='finger_2'></td>
+                        <td class='stats' id='finger_3'></td>
+                        <td class='stats' id='left_hand'></td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                  </td>
+                  <td>
+                    <table class='stats'>
+                      <tr>
+                        <th>右手</th><th>食指</th><th>中指</th><th>无名指</th><th>小指</th>
+                      </tr>
+                      <tr>
+                        <td class='stats' id='right_hand'></td>
+                        <td class='stats' id='finger_6'></td>
+                        <td class='stats' id='finger_7'></td>
+                        <td class='stats' id='finger_8'></td>
+                        <td class='stats' id='finger_9'></td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                  </td>
+                  <td>
+                    <table class='stats'>
+                      <tr>
+                        <th>上排</th> <td class='stats' id='row_0'></td>
+                      </tr>
+                      <tr>
+                        <th>中排</th> <td class='stats' id='row_1'></td>
+                      </tr>
+                      <tr>
+                        <th>下排</th> <td class='stats' id='row_2'></td>
+                      </tr>
+                    </table>
+                  </td>
                 </tr>
               </table>
-            </td>
-            <td>
-            </td>
-            <td>
-              <table class='stats'>
-                <tr>
-                  <th>右手</th><th>食指</th><th>中指</th><th>无名指</th><th>小指</th>
-                </tr>
-                <tr>
-                  <td class='stats' id='right_hand'></td>
-                  <td class='stats' id='finger_6'></td>
-                  <td class='stats' id='finger_7'></td>
-                  <td class='stats' id='finger_8'></td>
-                  <td class='stats' id='finger_9'></td>
-                </tr>
-              </table>
-            </td>
-            <td>
-            </td>
-            <td>
-              <table class='stats'>
-                <tr>
-                  <th>上排</th> <td class='stats' id='row_0'></td>
-                </tr>
-                <tr>
-                  <th>中排</th> <td class='stats' id='row_1'></td>
-                </tr>
-                <tr>
-                  <th>下排</th> <td class='stats' id='row_2'></td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
 
-        <table>
-          <tr>
-            <td>
-              <b>&nbsp;</b>
-              <table class='stats'>
+              <table>
                 <tr>
-                  <th></th><th>击键数</th><th>时间</th><th>距离</th>
-                  <th>计时距离</th><th>不计时距离</th>
-                </tr>
-                <tr>
-                  <th>总数</th>
-                  <td class='stats' id='hits'></td>
-                  <td class='stats' id='time'></td>
-                  <td class='stats' id='distance'></td>
-                  <td class='stats' id='effective_distance'></td>
-                  <td class='stats' id='overlap_distance'></td>
-                </tr>
-                <tr>
-                  <th>平均每键</th>
-                  <td class='stats'></td>
-                  <td class='stats' id='avg_time'></td>
-                  <td class='stats' id='avg_distance'></td>
-                  <td class='stats' id='avg_effective_distance'></td>
-                  <td class='stats' id='avg_overlap_distance'></td>
+                  <td>
+                    <b>&nbsp;</b>
+                    <table class='stats'>
+                      <tr>
+                        <th></th><th>击键数</th><th>时间</th><th>距离</th>
+                        <th>计时距离</th><th>不计时距离</th>
+                      </tr>
+                      <tr>
+                        <th>总数</th>
+                        <td class='stats' id='hits'></td>
+                        <td class='stats' id='time'></td>
+                        <td class='stats' id='distance'></td>
+                        <td class='stats' id='effective_distance'></td>
+                        <td class='stats' id='overlap_distance'></td>
+                      </tr>
+                      <tr>
+                        <th>平均每键</th>
+                        <td class='stats'></td>
+                        <td class='stats' id='avg_time'></td>
+                        <td class='stats' id='avg_distance'></td>
+                        <td class='stats' id='avg_effective_distance'></td>
+                        <td class='stats' id='avg_overlap_distance'></td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                  </td>
+                  <td>
+                    <b>同手连击: </b><b id='same_hand'></b>
+                    <table class='stats'>
+                      <tr>
+                        <th></th><th>0 距离</th><th>1 距离</th><th>2 距离</th>
+                      </tr>
+                      <tr>
+                        <th>同指连击</th>
+                        <td class='stats' id='same_finger_0'></td>
+                        <td class='stats' id='same_finger_1'></td>
+                        <td class='stats' id='same_finger_2'></td>
+                      </tr>
+                      <tr>
+                        <th>同手异指连击</th>
+                        <td class='stats' id='diff_finger_0'></td>
+                        <td class='stats' id='diff_finger_1'></td>
+                        <td class='stats' id='diff_finger_2'></td>
+                      </tr>
+                    </table>
+                  </td>
                 </tr>
               </table>
             </td>
             <td>
+              &nbsp; &nbsp; &nbsp; &nbsp;
             </td>
             <td>
-              <b>同手连击: </b><b id='same_hand'></b>
-              <table class='stats'>
-                <tr>
-                  <th></th><th>0 距离</th><th>1 距离</th><th>2 距离</th>
-                </tr>
-                <tr>
-                  <th>同指连击</th>
-                  <td class='stats' id='same_finger_0'></td>
-                  <td class='stats' id='same_finger_1'></td>
-                  <td class='stats' id='same_finger_2'></td>
-                </tr>
-                <tr>
-                  <th>同手异指连击</th>
-                  <td class='stats' id='diff_finger_0'></td>
-                  <td class='stats' id='diff_finger_1'></td>
-                  <td class='stats' id='diff_finger_2'></td>
-                </tr>
-              </table>
+
+              <p/><b>改进：</b>
+              <button id='improve' onclick='improve_scheme()'>建议</button><br/>
+              <textarea readonly rows='16' cols='36' id='suggestion'>
+              </textarea>
             </td>
           </tr>
         </table>
