@@ -94,7 +94,10 @@ var schemes = {
 };
 
 // Evaluation results of all schemes.
-var results = {qwerty:{}, dvorak:{}, colemak:{}};
+var results = {
+  staggered: {qwerty:{}, dvorak:{}, colemak:{}},
+  matrix: {qwerty:{}, dvorak:{}, colemak:{}}
+};
 
 var keyboard_layouts = {
 qwerty : {
@@ -327,13 +330,28 @@ function show_layout() {
   }
 }
 
+function update_geometry(geometry) {
+  if (geometry == 'matrix') {
+    document.getElementById('top-row').style.marginLeft = '0px';
+    document.getElementById('middle-row').style.marginLeft = '0px';
+    document.getElementById('bottom-row').style.marginLeft = '0px';
+  } else if (geometry == 'staggered') {
+    document.getElementById('top-row').style.marginLeft = '0px';
+    document.getElementById('middle-row').style.marginLeft = '25px';
+    document.getElementById('bottom-row').style.marginLeft = '75px';
+  }
+}
+
 function show_scheme(scheme_name) {
+  var geometry = document.getElementById('geometry').value;
+  update_geometry(geometry);
+
   var layout_name = document.getElementById('layout-name').value;
   var scheme;
-  if (results[layout_name][scheme_name] == null) {
+  if (results[geometry][layout_name][scheme_name] == null) {
     scheme = schemes[scheme_name];
   } else {
-    scheme = results[layout_name][scheme_name].scheme;
+    scheme = results[geometry][layout_name][scheme_name].scheme;
   }
   var layout = get_layout();
   var assignments = scheme.split(',');
@@ -347,12 +365,13 @@ function show_scheme(scheme_name) {
 }
 
 function evaluate_scheme(scheme_name, scheme) {
+  var geometry = document.getElementById('geometry').value;
   var layout_name = document.getElementById('layout-name').value;
   var conversion = convert_text_to_key_strokes(scheme_name, scheme);
   var result = hit_key_strokes(conversion.strokes);
   result.scheme = scheme;
   result.error = conversion.error;
-  results[layout_name][scheme_name] = result;
+  results[geometry][layout_name][scheme_name] = result;
 }
 
 function evaluate_current_scheme() {
@@ -363,11 +382,12 @@ function evaluate_current_scheme() {
 }
 
 function evaluate_all_schemes() {
+  var geometry = document.getElementById('geometry').value;
   var layout_name = document.getElementById('layout-name').value;
   var current_scheme_name = document.getElementById('scheme-name').value;
   for (var scheme_name in schemes) {
     var scheme = schemes[scheme_name];
-    var result = results[layout_name][scheme_name];
+    var result = results[geometry][layout_name][scheme_name];
     if (result != null) {
       scheme = result.scheme;
     }
@@ -512,6 +532,9 @@ function hit_key_strokes(key_strokes) {
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   ];
 
+  var geometry = document.getElementById('geometry').value;
+  var is_staggered = (geometry == 'staggered');
+
   // Positions of the hands, relative to home position.
   var left_hand_pos = [0, 0];
   var right_hand_pos = [0, 0];
@@ -539,7 +562,7 @@ function hit_key_strokes(key_strokes) {
     }
     var d = press_depth;
     if (same_hand) {
-      d += distance(x0, y0, x, y);
+      d += distance(x0, y0, x, y, is_staggered);
     }
 
     // Update statistics.
@@ -549,7 +572,7 @@ function hit_key_strokes(key_strokes) {
     if (same_hand) {
       ++result.same_hand_hits;
     } else {
-      result.overlap_distance += distance(x0, y0, x, y);
+      result.overlap_distance += distance(x0, y0, x, y, is_staggered);
     }
     if (finger == column_finger[last_column]) {
         result.same_finger_hits[Math.floor(d)] += 1;
@@ -563,8 +586,9 @@ function hit_key_strokes(key_strokes) {
 }
 
 function show_results(scheme_name) {
+  var geometry = document.getElementById('geometry').value;
   var layout_name = document.getElementById('layout-name').value;
-  var result = results[layout_name][scheme_name];
+  var result = results[geometry][layout_name][scheme_name];
   show_heat_map(result);
   if (result == null) {
     hide_element('result');
@@ -666,12 +690,14 @@ function show_heat_map(result) {
   }
 }
 
-// Distance between two key locations, assuming staggered layout.
-function distance(x0, y0, x1, y1) {
-  if (y0 > 0)
-    x0 += 0.25 + (y0 - 1) * 0.5;
-  if (y1 > 0)
-    x1 += 0.25 + (y1 - 1) * 0.5;
+// Distance between two key locations.
+function distance(x0, y0, x1, y1, is_staggered) {
+  if (is_staggered) {
+    if (y0 > 0)
+      x0 += 0.25 + (y0 - 1) * 0.5;
+    if (y1 > 0)
+      x1 += 0.25 + (y1 - 1) * 0.5;
+  }
   return Math.sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1));
 }
 
@@ -716,6 +742,9 @@ function total_pairs(pair_freq) {
 }
 
 function fast_evaluate_scheme(pinyin_map, pair_freq) {
+  var geometry = document.getElementById('geometry').value;
+  var is_staggered = (geometry == 'staggered');
+
   var layout = get_layout();
   var time = 0;
   for (first in pair_freq) {
@@ -745,9 +774,9 @@ function fast_evaluate_scheme(pinyin_map, pair_freq) {
 
       var d = press_depth;
       if (f0 == f1) {
-        d += distance(x0, y0, x1, y1);
+        d += distance(x0, y0, x1, y1, is_staggered);
       } else if (same_hand) {
-        d += distance(x0 + f1 - f0, y0, x1, y1);
+        d += distance(x0 + f1 - f0, y0, x1, y1, is_staggered);
       }
 
       var hit_time = d / finger_speed[f1];
@@ -909,6 +938,14 @@ function improve_scheme() {
             <option value='qwerty'>Qwerty</option>
             <option value='dvorak'>Dvorak</option>
             <option value='colemak'>Colemak</option>
+          </select>
+        </label>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+        <b>排列方式: </b>
+        <label>
+          <select id='geometry' onchange='select_scheme()'>
+            <option value='staggered'>传统/错排</option>
+            <option value='matrix'>矩阵</option>
           </select>
         </label>
         <br/>
