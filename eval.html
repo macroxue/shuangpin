@@ -94,10 +94,7 @@ var schemes = {
 };
 
 // Evaluation results of all schemes.
-var results = {
-  staggered: {qwerty:{}, dvorak:{}, colemak:{}},
-  matrix: {qwerty:{}, dvorak:{}, colemak:{}}
-};
+var results = {};
 
 var keyboard_layouts = {
 qwerty : {
@@ -342,17 +339,24 @@ function update_geometry(geometry) {
   }
 }
 
+function add_empty_results(scheme_name) {
+  results[scheme_name] = {
+    scheme: schemes[scheme_name],
+    qwerty: {},
+    dvorak: {},
+    colemak: {}
+  };
+}
+
 function show_scheme(scheme_name) {
   var geometry = document.getElementById('geometry').value;
   update_geometry(geometry);
 
   var layout_name = document.getElementById('layout-name').value;
-  var scheme;
-  if (results[geometry][layout_name][scheme_name] == null) {
-    scheme = schemes[scheme_name];
-  } else {
-    scheme = results[geometry][layout_name][scheme_name].scheme;
+  if (results[scheme_name] == null) {
+    add_empty_results(scheme_name);
   }
+  var scheme = results[scheme_name].scheme;
   var layout = get_layout();
   var assignments = scheme.split(',');
   for (var i = 0; i < assignments.length; ++i) {
@@ -369,9 +373,9 @@ function evaluate_scheme(scheme_name, scheme) {
   var layout_name = document.getElementById('layout-name').value;
   var conversion = convert_text_to_key_strokes(scheme_name, scheme);
   var result = hit_key_strokes(conversion.strokes);
-  result.scheme = scheme;
   result.error = conversion.error;
-  results[geometry][layout_name][scheme_name] = result;
+  results[scheme_name].scheme = scheme;
+  results[scheme_name][layout_name][geometry] = result;
 }
 
 function evaluate_current_scheme() {
@@ -387,9 +391,8 @@ function evaluate_all_schemes() {
   var current_scheme_name = document.getElementById('scheme-name').value;
   for (var scheme_name in schemes) {
     var scheme = schemes[scheme_name];
-    var result = results[geometry][layout_name][scheme_name];
-    if (result != null) {
-      scheme = result.scheme;
+    if (results[scheme_name] != null) {
+      scheme = results[scheme_name].scheme;
     }
     evaluate_scheme(scheme_name, scheme);
     if (scheme_name == current_scheme_name) {
@@ -588,7 +591,7 @@ function hit_key_strokes(key_strokes) {
 function show_results(scheme_name) {
   var geometry = document.getElementById('geometry').value;
   var layout_name = document.getElementById('layout-name').value;
-  var result = results[geometry][layout_name][scheme_name];
+  var result = results[scheme_name][layout_name][geometry];
   show_heat_map(result);
   if (result == null) {
     hide_element('result');
