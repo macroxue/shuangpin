@@ -70,6 +70,11 @@ div.result textarea {
   position: relative;
   top: 4px;
 }
+div.result select {
+  position: relative;
+  top: 4px;
+  width: 200px;
+}
 table[class='stats'], td[class='stats'] {
   background: #fed;
   border: 1px solid #243;
@@ -294,7 +299,7 @@ function select_scheme() {
   show_scheme('empty');
   show_scheme(scheme_name);
   show_results(scheme_name);
-  document.getElementById('suggestion').value = '';
+  hide_element('suggestion');
 }
 
 function get_layout() {
@@ -352,7 +357,6 @@ function show_scheme(scheme_name) {
   var geometry = document.getElementById('geometry').value;
   update_geometry(geometry);
 
-  var layout_name = document.getElementById('layout-name').value;
   if (results[scheme_name] == null) {
     add_empty_results(scheme_name);
   }
@@ -374,6 +378,9 @@ function evaluate_scheme(scheme_name, scheme) {
   var conversion = convert_text_to_key_strokes(scheme_name, scheme);
   var result = hit_key_strokes(conversion.strokes);
   result.error = conversion.error;
+  if (results[scheme_name] == null) {
+    add_empty_results(scheme_name);
+  }
   results[scheme_name].scheme = scheme;
   results[scheme_name][layout_name][geometry] = result;
 }
@@ -853,19 +860,52 @@ function improve_scheme() {
       }
     }
   }
-  var suggestions = '';
+
+  var suggestions = document.getElementById('suggestion');
+  var num_options = suggestions.length;
+  for (var i = num_options; i > 0; --i) {
+    suggestions.remove(i - 1);
+  }
+
   var swaps = Object.keys(swap_scores);
   if (swaps.length > 0) {
-  swaps.sort(function(a, b) { return swap_scores[b] - swap_scores[a]; });
-  for (var i = 0; i < swaps.length; ++i) {
-    suggestions += swap_scores[swaps[i]] +  ': 交换 ' + swaps[i] + '\n';
-  }
+    swaps.sort(function(a, b) { return swap_scores[b] - swap_scores[a]; });
+    for (var i = 0; i < swaps.length; ++i) {
+      var option = document.createElement('option');
+      option.text = swap_scores[swaps[i]] +  ': 交换 ' + swaps[i] + '\n';
+      suggestions.add(option);
+    }
   } else {
-    suggestions = '该方案已是局部最优';
+    var option = document.createElement('option');
+    option.text = '该方案已是局部最优';
+    suggestion.add(option);
   }
-  document.getElementById('suggestion').value = suggestions;
+  show_element('suggestion');
 }
 
+function apply_suggestion() {
+  var layout = get_layout();
+  var suggestion = document.getElementById('suggestion').value;
+  var items = suggestion.split(' ');
+  if (items.length < 5) {
+    return;
+  }
+
+  var key1 = items[2][0].toLowerCase();
+  var x1 = layout[key1][0];
+  var y1 = layout[key1][1];
+  var py1 = document.getElementById('py_' + y1 + x1).value;
+
+  var key2 = items[4][0].toLowerCase();
+  var x2 = layout[key2][0];
+  var y2 = layout[key2][1];
+  var py2 = document.getElementById('py_' + y2 + x2).value;
+
+  document.getElementById('py_' + y1 + x1).value = py2;
+  document.getElementById('py_' + y2 + x2).value = py1;
+
+  evaluate_current_scheme();
+}
     </script>
   </head>
   <body onload='initialize_on_load()'>
@@ -1105,13 +1145,13 @@ function improve_scheme() {
               </table>
             </td>
             <td>
-              &nbsp; &nbsp; &nbsp; &nbsp;
+              &nbsp; &nbsp; &nbsp;
             </td>
             <td id='improvement'>
               <p/><b>改进：</b>
               <button id='improve' onclick='improve_scheme()'>建议</button><br/>
-              <textarea readonly rows='16' cols='36' id='suggestion'>
-              </textarea>
+              <select id='suggestion' onclick='apply_suggestion()' size=13>
+              </select>
             </td>
           </tr>
         </table>
