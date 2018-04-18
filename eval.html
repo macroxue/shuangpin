@@ -149,18 +149,14 @@ var punctuations = {
     '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
 };
 
-function split_pinyin(pinyin, has_zero_sheng) {
+function split_pinyin(pinyin) {
   if (pinyin == 'ng') {
     pinyin = 'eng';
   }
   var first = pinyin[0];
   var sheng, yun;
   if ('aoe'.includes(first)) {
-    if (has_zero_sheng) {
-      sheng = '0';
-    } else {
-      sheng = first;
-    }
+    sheng = '';
     yun = pinyin;
   } else if ('zcs'.includes(first) && pinyin[1] == 'h') {
     sheng = pinyin.substr(0, 2);
@@ -229,7 +225,7 @@ function stat_pinyin() {
     }
     var sheng_yun = pinyin_splits[pinyin];
     if (sheng_yun == null) {
-      sheng_yun = split_pinyin(pinyin, true);
+      sheng_yun = split_pinyin(pinyin);
       pinyin_splits[pinyin] = sheng_yun;
     }
 
@@ -465,17 +461,71 @@ function read_pinyin_map_from_scheme(scheme) {
   return {pinyin_map: pinyin_map, error:error};
 }
 
+function pinyin_to_key_strokes(pinyin, sheng_yun_key_map) {
+  var sheng_yun = split_pinyin(pinyin);
+  var sheng = sheng_yun.sheng;
+  var yun = sheng_yun.yun;
+  if (sheng == '') {
+    // 零声母
+    if (sheng_yun_key_map['0'] != null) {
+      sheng = '0';
+    } else {
+      sheng = yun[0];
+    }
+  }
+  var sheng_key = sheng_yun_key_map[sheng];
+  if (yun == '') {
+    // 零韵母
+    return {key_strokes: sheng_key, error: ''};
+  }
+  var yun_key = sheng_yun_key_map[yun];
+  if (sheng_key == null || yun_key == null) {
+    var error = '无法打出拼音' + pinyin + '=' + sheng + '+' + yun + '\n';
+    return {key_strokes: '', error: error};
+  }
+  return {key_strokes: sheng_key + yun_key, error: ''};
+}
+
+function all_pinyin_to_key_strokes(sheng_yun_key_map) {
+  var pinyin_key_map = {};
+  var key_pinyin_map = {};
+  var error = '';
+  for (var i = 0; i < all_pinyin.length; ++i) {
+    var conversion = pinyin_to_key_strokes(all_pinyin[i], sheng_yun_key_map);
+    if (conversion.error != '') {
+      return {pinyin_key_map: {}, error: conversion.error};
+    }
+    pinyin_key_map[all_pinyin[i]] = conversion.key_strokes;
+    var existing_pinyin = key_pinyin_map[conversion.key_strokes];
+    if (existing_pinyin == null) {
+      key_pinyin_map[conversion.key_strokes] = all_pinyin[i];
+    } else {
+      error += all_pinyin[i] + '和' + existing_pinyin + '都是' +
+        conversion.key_strokes + '\n';
+    }
+  }
+  return {pinyin_key_map: pinyin_key_map, error: error};
+}
+
 function convert_text_to_key_strokes(scheme_name, scheme) {
-  var full_pinyin = (scheme_name == '全拼');
   var pm = read_pinyin_map_from_scheme(scheme);
-  var pinyin_map = pm.pinyin_map;
   var error = pm.error;
-  var has_zero_sheng = (pinyin_map['0'] != null);
+  var pinyin_key_map = {};
+  if (scheme_name == '全拼') {
+    for (var i = 0; i < all_pinyin.length; ++i) {
+      pinyin_key_map[all_pinyin[i]] = all_pinyin[i];
+    }
+  } else {
+    var conversion = all_pinyin_to_key_strokes(pm.pinyin_map);
+    if (Object.keys(conversion.pinyin_key_map).length < all_pinyin.length) {
+      return {strokes: '', error: conversion.error};
+    }
+    pinyin_key_map = conversion.pinyin_key_map;
+    error += conversion.error;
+  }
 
   // Convert characters to key strokes.
   var input = document.getElementById('input-text').value;
-  var pinyin_keys = {};
-  var keys_pinyin = {};
   var key_strokes = '';
   var ignored = '';
   for (var i = 0; i < input.length; ++i) {
@@ -493,34 +543,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
       ignored += c;
       continue;
     }
-    if (full_pinyin) {
-      key_strokes += pinyin;
-      continue;
-    }
-    if (pinyin_keys[pinyin] != null) {
-      key_strokes += pinyin_keys[pinyin];
-      continue;
-    }
-    var sheng_yun = split_pinyin(pinyin, has_zero_sheng);
-    var sheng = sheng_yun.sheng;
-    var yun = sheng_yun.yun;
-    var sheng_key = pinyin_map[sheng];
-    var yun_key = pinyin_map[yun];
-    if (sheng_key == null || yun_key == null) {
-      error += '无法打出"' + c + '"的拼音"' + pinyin
-        + '"="' + sheng + '"+"' + yun + '"\n';
-      break;
-    }
-    var keys = sheng_key + yun_key;
-    pinyin_keys[pinyin] = keys;
-    key_strokes += keys;
-
-    var existing_pinyin = keys_pinyin[keys];
-    if (existing_pinyin == null) {
-      keys_pinyin[sheng_key + yun_key] = pinyin;
-    } else if (existing_pinyin != pinyin) {
-      error += pinyin + '和' + existing_pinyin + '都是' + keys + '\n';
-    }
+    key_strokes += pinyin_key_map[pinyin];
   }
   // console.log('忽略: ' + ignored);
   return {strokes:key_strokes, error:error};
@@ -760,14 +783,14 @@ function fast_evaluate_scheme(pinyin_map, pair_freq) {
   for (first in pair_freq) {
     for (second in pair_freq[first]) {
       var first_key = pinyin_map[first];
-      if (first == '0' && first_key == null) {
+      if (first == '' && first_key == null) {
         first_key = second[0];
       }
       if (first_key == null) {
         first_key = first;
       }
       var second_key = pinyin_map[second];
-      if (second == '0' && second_key == null) {
+      if (second == '' && second_key == null) {
         second_key = 'a';
       }
       if (second_key == null) {
@@ -1185,6 +1208,418 @@ function apply_suggestion() {
     </div>
   </body>
   <script>
+var all_pinyin = [
+'a',
+'ai',
+'an',
+'ang',
+'ao',
+'ba',
+'bai',
+'ban',
+'bang',
+'bao',
+'bei',
+'ben',
+'beng',
+'bi',
+'bian',
+'biao',
+'bie',
+'bin',
+'bing',
+'bo',
+'bu',
+'ca',
+'cai',
+'can',
+'cang',
+'cao',
+'ce',
+'cen',
+'ceng',
+'cha',
+'chai',
+'chan',
+'chang',
+'chao',
+'che',
+'chen',
+'cheng',
+'chi',
+'chong',
+'chou',
+'chu',
+'chuai',
+'chuan',
+'chuang',
+'chui',
+'chun',
+'chuo',
+'ci',
+'cong',
+'cou',
+'cu',
+'cuan',
+'cui',
+'cun',
+'cuo',
+'da',
+'dai',
+'dan',
+'dang',
+'dao',
+'de',
+'dei',
+'deng',
+'di',
+'dia',
+'dian',
+'diao',
+'die',
+'ding',
+'diu',
+'dong',
+'dou',
+'du',
+'duan',
+'dui',
+'dun',
+'duo',
+'e',
+'ei',
+'en',
+'er',
+'fa',
+'fan',
+'fang',
+'fei',
+'fen',
+'feng',
+'fo',
+'fou',
+'fu',
+'ga',
+'gai',
+'gan',
+'gang',
+'gao',
+'ge',
+'gei',
+'gen',
+'geng',
+'gong',
+'gou',
+'gu',
+'gua',
+'guai',
+'guan',
+'guang',
+'gui',
+'gun',
+'guo',
+'ha',
+'hai',
+'han',
+'hang',
+'hao',
+'he',
+'hei',
+'hen',
+'heng',
+'hong',
+'hou',
+'hu',
+'hua',
+'huai',
+'huan',
+'huang',
+'hui',
+'hun',
+'huo',
+'ji',
+'jia',
+'jian',
+'jiang',
+'jiao',
+'jie',
+'jin',
+'jing',
+'jiong',
+'jiu',
+'ju',
+'juan',
+'jue',
+'jun',
+'ka',
+'kai',
+'kan',
+'kang',
+'kao',
+'ke',
+'ken',
+'keng',
+'kong',
+'kou',
+'ku',
+'kua',
+'kuai',
+'kuan',
+'kuang',
+'kui',
+'kun',
+'kuo',
+'la',
+'lai',
+'lan',
+'lang',
+'lao',
+'le',
+'lei',
+'leng',
+'li',
+'lia',
+'lian',
+'liang',
+'liao',
+'lie',
+'lin',
+'ling',
+'liu',
+'lo',
+'long',
+'lou',
+'lu',
+'luan',
+'lue',
+'lun',
+'luo',
+'lv',
+'m',
+'ma',
+'mai',
+'man',
+'mang',
+'mao',
+'me',
+'mei',
+'men',
+'meng',
+'mi',
+'mian',
+'miao',
+'mie',
+'min',
+'ming',
+'miu',
+'mo',
+'mou',
+'mu',
+'n',
+'na',
+'nai',
+'nan',
+'nang',
+'nao',
+'ne',
+'nei',
+'nen',
+'neng',
+'ng',
+'ni',
+'nian',
+'niang',
+'niao',
+'nie',
+'nin',
+'ning',
+'niu',
+'nong',
+'nou',
+'nu',
+'nuan',
+'nue',
+'nuo',
+'nv',
+'o',
+'ou',
+'pa',
+'pai',
+'pan',
+'pang',
+'pao',
+'pei',
+'pen',
+'peng',
+'pi',
+'pian',
+'piao',
+'pie',
+'pin',
+'ping',
+'po',
+'pou',
+'pu',
+'qi',
+'qia',
+'qian',
+'qiang',
+'qiao',
+'qie',
+'qin',
+'qing',
+'qiong',
+'qiu',
+'qu',
+'quan',
+'que',
+'qun',
+'ran',
+'rang',
+'rao',
+'re',
+'ren',
+'reng',
+'ri',
+'rong',
+'rou',
+'ru',
+'ruan',
+'rui',
+'run',
+'ruo',
+'sa',
+'sai',
+'san',
+'sang',
+'sao',
+'se',
+'sen',
+'seng',
+'sha',
+'shai',
+'shan',
+'shang',
+'shao',
+'she',
+'shei',
+'shen',
+'sheng',
+'shi',
+'shou',
+'shu',
+'shua',
+'shuai',
+'shuan',
+'shuang',
+'shui',
+'shun',
+'shuo',
+'si',
+'song',
+'sou',
+'su',
+'suan',
+'sui',
+'sun',
+'suo',
+'ta',
+'tai',
+'tan',
+'tang',
+'tao',
+'te',
+'tei',
+'teng',
+'ti',
+'tian',
+'tiao',
+'tie',
+'ting',
+'tong',
+'tou',
+'tu',
+'tuan',
+'tui',
+'tun',
+'tuo',
+'wa',
+'wai',
+'wan',
+'wang',
+'wei',
+'wen',
+'weng',
+'wo',
+'wu',
+'xi',
+'xia',
+'xian',
+'xiang',
+'xiao',
+'xie',
+'xin',
+'xing',
+'xiong',
+'xiu',
+'xu',
+'xuan',
+'xue',
+'xun',
+'ya',
+'yan',
+'yang',
+'yao',
+'ye',
+'yi',
+'yin',
+'ying',
+'yo',
+'yong',
+'you',
+'yu',
+'yuan',
+'yue',
+'yun',
+'za',
+'zai',
+'zan',
+'zang',
+'zao',
+'ze',
+'zei',
+'zen',
+'zeng',
+'zha',
+'zhai',
+'zhan',
+'zhang',
+'zhao',
+'zhe',
+'zhei',
+'zhen',
+'zheng',
+'zhi',
+'zhong',
+'zhou',
+'zhu',
+'zhua',
+'zhuai',
+'zhuan',
+'zhuang',
+'zhui',
+'zhun',
+'zhuo',
+'zi',
+'zong',
+'zou',
+'zu',
+'zuan',
+'zui',
+'zun',
+'zuo'
+];
+
 var hanzi_pinyin = {
 厑:'a',
 啊:'a',
