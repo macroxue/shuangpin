@@ -1,0 +1,72 @@
+body {
+  background: #eee;
+}
+div.evaluator {
+  max-width: 1200px;
+  margin: auto;
+}
+div.test-text {
+  margin-left: 20px;
+}
+div.test-text input {
+  border: 2px solid #28a;
+  width: 60px;
+}
+div.test-text textarea {
+  position: relative;
+  top: 4px;
+}
+div.test-text td[class='stats'] {
+  border: none;
+  background: transparent;
+  display: none
+}
+div.test-text div[class='stats-saved'] {
+  display: none
+}
+div.keyboard {
+  margin-left: 20px;
+}
+div.keyboard input {
+  border: 2px solid #28a;
+  width: 80px;
+}
+div.keyboard table, div.keyboard th, div.keyboard td {
+  background: #fed;
+  border: 2px solid #243;
+  padding: 8px 8px;
+  border-collapse: collapse;
+  margin-top: -1px;
+}
+div.keyboard #top-row {
+  margin-left: 0px;
+}
+div.keyboard #middle-row {
+  margin-left: 25px;
+}
+div.keyboard #bottom-row {
+  margin-left: 75px;
+}
+div.result {
+  margin-left: 20px;
+  display: none;
+}
+div.result #error {
+  background: #ff0;
+}
+div.result textarea {
+  position: relative;
+  top: 4px;
+}
+div.result select {
+  position: relative;
+  top: 4px;
+  width: 200px;
+}
+table[class='stats'], td[class='stats'] {
+  background: #fed;
+  border: 1px solid #243;
+  padding: 8px 8px;
+  border-collapse: collapse;
+  margin-top: -1px;
+}
