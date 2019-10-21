@@ -337,14 +337,8 @@ function get_scheme_from_keyboard() {
 function read_pinyin_map_from_scheme(scheme) {
   var error = '';
 
-  // Setup default mapping for single letters.
-  var pinyin_map = {};
-  var letters = 'abcdefghijklmnopqrstuvwxyz';
-  for (var i = 0; i < letters.length; ++i) {
-    pinyin_map[letters[i]] = letters[i];
-  }
-
   // Read scheme mapping.
+  var pinyin_map = {};
   var assignments = scheme.split(',');
   for (var i = 0; i < assignments.length; ++i) {
     var items = assignments[i].split('=');
@@ -370,6 +364,14 @@ function read_pinyin_map_from_scheme(scheme) {
           + key.toUpperCase() + '上\n';
       }
       pinyin_map[py] = key;
+    }
+  }
+
+  // Setup default mapping for single letters.
+  var letters = 'abcdefghijklmnopqrstuvwxyz';
+  for (var i = 0; i < letters.length; ++i) {
+    if (pinyin_map[letters[i]] == null) {
+      pinyin_map[letters[i]] = letters[i];
     }
   }
   return {pinyin_map: pinyin_map, error:error};
