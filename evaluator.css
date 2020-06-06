@@ -29,7 +29,13 @@ div.keyboard {
 }
 div.keyboard input {
   border: 2px solid #28a;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 2px;
   width: 80px;
+}
+div.keyboard div {
+  text-align: center;
 }
 div.keyboard table, div.keyboard th, div.keyboard td {
   background: #fed;
