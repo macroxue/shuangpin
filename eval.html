@@ -29,11 +29,9 @@
               <button id='stat' onclick='stat_pinyin()'>统计拼音频率</button>
               <br/>
               <textarea rows='6' cols='60' id='input-text'>
-在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。
-处理几十万字不成问题。
+在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
 
-定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，
-具体例子参见下面的‘乱序优化’方案。
+定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
               </textarea>
             </td>
             <td class='stats' id='pinyin-stats-cell'>
@@ -86,7 +84,14 @@
         </label>
         <button onclick='evaluate_current_scheme()'>评测当前方案</button>
         <button onclick='evaluate_all_schemes()'>评测所有方案</button>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+        <label>
+          <select id='ime-engine' onchange='export_scheme()'>
+            <option value='none'>输出当前方案</option>
+            <option value='fcitx'>Fcitx/小企鹅</option>
+            <option value='rime'>Rime/中州韵</option>
+          </select>
+        </label>
+        &nbsp; &nbsp; &nbsp; &nbsp;
         <b>键盘布局: </b>
         <label>
           <select id='layout-name' onchange='select_scheme()'>
@@ -95,7 +100,7 @@
             <option value='colemak'>Colemak</option>
           </select>
         </label>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+        &nbsp; &nbsp; &nbsp; &nbsp;
         <b>排列方式: </b>
         <label>
           <select id='geometry' onchange='select_scheme()'>

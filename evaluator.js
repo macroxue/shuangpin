@@ -853,3 +853,247 @@ function apply_suggestion() {
 
   evaluate_current_scheme();
 }
+
+function export_scheme() {
+  var ime_engine = document.getElementById('ime-engine');
+  var title = document.getElementById('scheme-name').value + ' - ' +
+    ime_engine.options[ime_engine.selectedIndex].text;
+
+  var config;
+  switch (ime_engine.value) {
+    case 'fcitx': config = export_scheme_for_fcitx(); break;
+    case 'rime': config = export_scheme_for_rime(); break;
+  }
+  var new_window = window.open();
+  new_window.document.write('<html><head><title>'+ title + '</title></head>' +
+                            '<body><pre>' + config + '</pre></body></html>');
+  document.getElementById('ime-engine').value = 'none';
+}
+
+var shengs = ['b','p','m','f','d','t','n','l','g','k','h',
+  'j','q','x','zh','ch','sh','r','z','c','s', 'y','w'];
+
+var yuns = {
+	a: ['0','b','c','ch','d','f','g','h','k','l','m','n','p','s','sh','t','w','y','z','zh'],
+	ai: ['0','b','c','ch','d','g','h','k','l','m','n','p','s','sh','t','w','z','zh'],
+	an: ['0','b','c','ch','d','f','g','h','k','l','m','n','p','r','s','sh','t','w','y','z','zh'],
+	ang: ['0','b','c','ch','d','f','g','h','k','l','m','n','p','r','s','sh','t','w','y','z','zh'],
+	ao: ['0','b','c','ch','d','g','h','k','l','m','n','p','r','s','sh','t','y','z','zh'],
+	o: ['0','b','f','l','m','p','w','y'],
+	ong: ['c','ch','d','g','h','k','l','n','r','s','t','y','z','zh'],
+	ou: ['0','c','ch','d','f','g','h','k','l','m','n','p','r','s','sh','t','y','z','zh'],
+	e: ['0','c','ch','d','g','h','k','l','m','n','r','s','sh','t','y','z','zh'],
+	ei: ['0','b','d','f','g','h','l','m','n','p','sh','w','z','zh'],
+	en: ['0','b','c','ch','f','g','h','k','m','n','p','r','s','sh','w','z','zh'],
+	eng: ['0', 'b','c','ch','d','f','g','h','k','l','m','n','p','r','s','sh','t','w','z','zh'],
+	er: ['0'],
+	i: ['b','c','ch','d','j','l','m','n','p','q','r','s','sh','t','x','y','z','zh'],
+	ia: ['d','j','l','q','x'],
+	ian: ['b','d','j','l','m','n','p','q','t','x'],
+	iang: ['j','l','n','q','x'],
+	iao: ['b','d','j','l','m','n','p','q','t','x'],
+	ie: ['b','d','j','l','m','n','p','q','t','x'],
+	in: ['b','j','l','m','n','p','q','x','y'],
+	ing: ['b','d','j','l','m','n','p','q','t','x','y'],
+	iong: ['j','q','x'],
+	iu: ['d','j','l','m','n','q','x'],
+	u: ['b','c','ch','d','f','g','h','j','k','l','m','n','p','q','r','s','sh','t','w','x','y','z','zh'],
+	ua: ['g','h','k','sh','zh'],
+	uai: ['ch','g','h','k','sh','zh'],
+	uan: ['c','ch','d','g','h','j','k','l','n','q','r','s','sh','t','x','y','z','zh'],
+	uang: ['ch','g','h','k','sh','zh'],
+	ue: ['j','q','x','y'],
+	ui: ['c','ch','d','g','h','k','r','s','sh','t','z','zh'],
+	un: ['c','ch','d','g','h','j','k','l','q','r','s','sh','t','x','y','z','zh'],
+	uo: ['c','ch','d','g','h','k','l','n','r','s','sh','t','z','zh'],
+	v: ['l','n'],
+	ve: ['l','n'],
+};
+
+function export_scheme_for_fcitx() {
+  var scheme_name = document.getElementById('scheme-name').value;
+  var scheme = get_scheme_from_keyboard();
+  var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+
+  var zero_sheng_section = '';
+  if (pinyin_map['0'] != null) {
+    zero_sheng_section += '=' + pinyin_map['0'].toUpperCase() + '\n';
+  }
+
+  var sheng_section = '';
+  for (var sheng of shengs) {
+    var key = pinyin_map[sheng];
+    if (sheng != null && sheng != key) {
+      sheng_section += sheng + '=' + key.toUpperCase() + '\n';
+    }
+  }
+
+  var yun_section = '';
+  for (var yun in yuns) {
+    var key = pinyin_map[yun];
+    if (yun != null && yun != key) {
+      yun_section += yun + '=' + key.toUpperCase() + '\n';
+    }
+  }
+
+  return `
+[方案]
+方案名称=${scheme_name}
+
+[零声母标识]
+${zero_sheng_section}
+[声母]
+# 双拼编码就是它本身的声母不必列出
+${sheng_section}
+[韵母]
+# 双拼编码就是它本身的韵母不必列出
+${yun_section}
+`;
+}
+
+function export_scheme_for_rime() {
+  var scheme_name = document.getElementById('scheme-name').value;
+  var scheme = get_scheme_from_keyboard();
+  var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+
+  var zero_sheng_speller = '', sheng_speller = '', yun_speller = '';
+  var zero_sheng_translator = '', sheng_translator = '', yun_translator = '';
+
+  var has_zero_sheng = (pinyin_map['0'] != null);
+  if (has_zero_sheng) {
+    var key = pinyin_map['0'];
+    zero_sheng_speller += '    - xform/^([aoe].*)$/' +
+      key.toUpperCase() + '$1/\n';
+    zero_sheng_translator += '    - "xform/(^|[ \'])' + key + '/$1/"\n';
+  } else {
+    zero_sheng_speller += '    - xform/^([aoe])(.*)$/$1$1$2/\n';
+    zero_sheng_translator += '    - "xform/(^|[ \'])[aoe]/$1/"\n';
+  }
+
+  for (var sheng of shengs) {
+    var key = pinyin_map[sheng];
+    if (sheng != null && sheng != key) {
+      sheng_speller += '    - xform/^' + sheng + '/' +
+        key.toUpperCase() + '/\n';
+      sheng_translator += '    - "xform/(^|[ \'])' +
+        key + '/$1' + sheng.toUpperCase() + '/"\n';
+    }
+  }
+
+  var sorted_yuns = Object.keys(yuns);
+  sorted_yuns.sort(function(a, b) { return b.length - a.length; });
+  for (var yun of sorted_yuns) {
+    var key = pinyin_map[yun];
+    if (yun != null && yun != key) {
+      yun_speller += '    - xform/' + yun + '$/' +
+        key.toUpperCase() + '/\n';
+
+      var prefixes = '';
+      for (var sheng of yuns[yun]) {
+        if (sheng == '0' && !has_zero_sheng) {
+          sheng = yun[0];
+        }
+        prefixes += pinyin_map[sheng];
+      }
+      yun_translator += '    - xform/([' + prefixes + '])' +
+        key + '/$1' + yun.toUpperCase() + '/\n';
+    }
+  }
+
+  speller_xforms = (zero_sheng_speller + sheng_speller +
+                    yun_speller).slice(0, -1);
+  translator_xforms = (yun_translator + sheng_translator +
+                       zero_sheng_translator).slice(0, -1);
+
+  return `<pre>
+# Rime schema
+# encoding: utf-8
+
+schema:
+  schema_id: double_pinyin
+  name: ${scheme_name}
+  version: "0.1"
+  author:
+    - 无名氏
+  description: |
+    朙月拼音＋${scheme_name}双拼方案。
+  dependencies:
+    - stroke
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: simplification
+    states: [ 漢字, 汉字 ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - reverse_lookup_translator
+    - script_translator
+  filters:
+    - simplifier
+    - uniquifier
+
+speller:
+  alphabet: abcdefghijklmnopqrstuvwxyz;
+  delimiter: " '"
+  algebra:
+    - erase/^xx$/
+    - derive/^([jqxy])u$/$1v/
+${speller_xforms}
+    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+
+translator:
+  dictionary: luna_pinyin
+  prism: double_pinyin
+  preedit_format:
+${translator_xforms}
+    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+    - xform/([nl])v/$1ü/
+    - xform/([jqxy])v/$1u/
+
+reverse_lookup:
+  dictionary: stroke
+  enable_completion: true
+  prefix: "\`"
+  suffix: "'"
+  tips: 〔笔画〕
+  preedit_format:
+    - xlit/hspnz/一丨丿丶乙/
+  comment_format:
+    - xform/([nl])v/$1ü/
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default
+  patterns:
+    reverse_lookup: "\`[a-z]*'?$"
+  `;
+}
+
