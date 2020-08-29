@@ -861,13 +861,23 @@ function export_scheme() {
 
   var config;
   switch (ime_engine.value) {
-    case 'fcitx': config = export_scheme_for_fcitx(); break;
-    case 'rime': config = export_scheme_for_rime(); break;
+    case 'fcitx': download("sp.dat", export_scheme_for_fcitx()); break;
+    case 'rime': download("double_pinyin.schema.yaml", export_scheme_for_rime()); break;
   }
-  var new_window = window.open();
-  new_window.document.write('<html><head><title>'+ title + '</title></head>' +
-                            '<body><pre>' + config + '</pre></body></html>');
   document.getElementById('ime-engine').value = 'none';
+}
+
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
 
 var shengs = ['b','p','m','f','d','t','n','l','g','k','h',
@@ -936,7 +946,7 @@ function export_scheme_for_fcitx() {
     }
   }
 
-  return `
+  return `\
 [方案]
 方案名称=${scheme_name}
 
@@ -1005,7 +1015,7 @@ function export_scheme_for_rime() {
   translator_xforms = (yun_translator + sheng_translator +
                        zero_sheng_translator).slice(0, -1);
 
-  return `<pre>
+  return `\
 # Rime schema
 # encoding: utf-8
 
