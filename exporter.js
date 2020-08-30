@@ -41,6 +41,65 @@ var yuns = {
 var stroke_names = {'-':'横', '|':'竖', '/':'撇', '\\':'点(捺)', '^':'折'};
 var stroke_symbols = {h:'-', s:'|', p:'/', n:'\\', z:'^'};
 
+var rime_switches = `\
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: simplification
+    reset: 1
+    states: [ 漢字, 汉字 ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]`;
+
+var rime_common = `\
+reverse_lookup:
+  dictionary: stroke
+  enable_completion: true
+  prefix: "\`"
+  suffix: "'"
+  tips: 〔笔画〕
+  preedit_format:
+    - xlit/hspnz/一丨丿丶乙/
+  comment_format:
+    - xform/([nl])v/$1ü/
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+  bindings:
+    - { when: has_menu, accept: comma, send: comma }
+    - { when: has_menu, accept: period, send: period }
+    - { when: has_menu, accept: bracketleft, send: Prior }
+    - { when: has_menu, accept: bracketright, send: Next }
+
+recognizer:
+  import_preset: default
+  patterns:
+    reverse_lookup: "\`[a-z]*'?$"`;
+
+var rime_engine = `\
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor`;
+
 function convert_pinyin_to_double(pinyin, pinyin_map) {
   var sheng_yun = split_pinyin(pinyin);
   if (sheng_yun.yun == '') {
@@ -174,34 +233,9 @@ schema:
   dependencies:
     - stroke
 
-switches:
-  - name: ascii_mode
-    reset: 0
-    states: [ 中文, 西文 ]
-  - name: full_shape
-    states: [ 半角, 全角 ]
-  - name: simplification
-    reset: 1
-    states: [ 漢字, 汉字 ]
-  - name: ascii_punct
-    states: [ 。，, ．， ]
+${rime_switches}
 
-engine:
-  processors:
-    - ascii_composer
-    - recognizer
-    - key_binder
-    - speller
-    - punctuator
-    - selector
-    - navigator
-    - express_editor
-  segmentors:
-    - ascii_segmentor
-    - matcher
-    - abc_segmentor
-    - punct_segmentor
-    - fallback_segmentor
+${rime_engine}
   translators:
     - punct_translator
     - reverse_lookup_translator
@@ -219,27 +253,7 @@ translator:
   preedit_format:
     - "xform/^/〔单〕/"
 
-reverse_lookup:
-  dictionary: stroke
-  enable_completion: true
-  prefix: "\`"
-  suffix: "'"
-  tips: 〔笔画〕
-  preedit_format:
-    - xlit/hspnz/一丨丿丶乙/
-  comment_format:
-    - xform/([nl])v/$1ü/
-
-punctuator:
-  import_preset: default
-
-key_binder:
-  import_preset: default
-
-recognizer:
-  import_preset: default
-  patterns:
-    reverse_lookup: "\`[a-z]*'?$"
+${rime_common}
   `;
 }
 
@@ -336,34 +350,9 @@ schema:
   dependencies:
     - stroke
 
-switches:
-  - name: ascii_mode
-    reset: 0
-    states: [ 中文, 西文 ]
-  - name: full_shape
-    states: [ 半角, 全角 ]
-  - name: simplification
-    reset: 1
-    states: [ 漢字, 汉字 ]
-  - name: ascii_punct
-    states: [ 。，, ．， ]
+${rime_switches}
 
-engine:
-  processors:
-    - ascii_composer
-    - recognizer
-    - key_binder
-    - speller
-    - punctuator
-    - selector
-    - navigator
-    - express_editor
-  segmentors:
-    - ascii_segmentor
-    - matcher
-    - abc_segmentor
-    - punct_segmentor
-    - fallback_segmentor
+${rime_engine}
   translators:
     - punct_translator
     - reverse_lookup_translator
@@ -394,27 +383,7 @@ ${translator_xforms}
 
 ${second_translator}
 
-reverse_lookup:
-  dictionary: stroke
-  enable_completion: true
-  prefix: "\`"
-  suffix: "'"
-  tips: 〔笔画〕
-  preedit_format:
-    - xlit/hspnz/一丨丿丶乙/
-  comment_format:
-    - xform/([nl])v/$1ü/
-
-punctuator:
-  import_preset: default
-
-key_binder:
-  import_preset: default
-
-recognizer:
-  import_preset: default
-  patterns:
-    reverse_lookup: "\`[a-z]*'?$"
+${rime_common}
   `;
 }
 
