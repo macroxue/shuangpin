@@ -12,6 +12,8 @@
     <link rel='stylesheet' href='evaluator.css'></link>
     <script src='evaluator.js'></script>
     <script src='hanzi_pinyin.js' defer></script>
+    <script src='exporter.js'></script>
+    <script src='char_info.js'></script>
     <noscript>
       <p>本网页需要支持Javascript的浏览器。</p>
     </noscript>
@@ -29,9 +31,9 @@
               <button id='stat' onclick='stat_pinyin()'>统计拼音频率</button>
               <br/>
               <textarea rows='6' cols='60' id='input-text'>
-在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
-
-定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
+  在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
+  定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
+  如果要添加笔画辅助码，则以 -、|、/、\、^ 分别表示横、竖、撇、点(捺)、折。
               </textarea>
             </td>
             <td class='stats' id='pinyin-stats-cell'>
@@ -89,6 +91,7 @@
             <option value='none'>输出当前方案</option>
             <option value='fcitx'>Fcitx/小企鹅</option>
             <option value='rime'>Rime/中州韵</option>
+            <option value='rime_smart'>Rime/中州韵+辅助码</option>
           </select>
         </label>
         &nbsp; &nbsp; &nbsp; &nbsp;
