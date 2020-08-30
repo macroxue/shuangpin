@@ -327,10 +327,6 @@ function export_scheme_for_rime(smart) {
 second_translator:
   dictionary: double_pinyin_stroke
   preedit_format:
-${translator_xforms}
-    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
-    - xform/([nl])v/$1ü/
-    - xform/([jqxy])v/$1u/
     - "xform/^/〔单〕/"
 `;
   }
@@ -375,10 +371,6 @@ translator:
   dictionary: luna_pinyin
   prism: double_pinyin${optional_id}
   preedit_format:
-${translator_xforms}
-    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
-    - xform/([nl])v/$1ü/
-    - xform/([jqxy])v/$1u/
     - "xform/^/〔双〕/"
 
 ${second_translator}
