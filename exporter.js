@@ -127,13 +127,7 @@ function export_stroke_dict_for_rime() {
   var scheme_name = document.getElementById('scheme-name').value;
   var scheme = get_scheme_from_keyboard();
   var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
-  /*
-  pinyin_map['-'] = 'e';
-  pinyin_map['|'] = 'i';
-  pinyin_map['/'] = 'u';
-  pinyin_map['\\'] = 'o';
-  pinyin_map['^'] = 'a';
-  */
+
   for (var stroke of '-|/\\^') {
     if (pinyin_map[stroke] == null) {
       alert(stroke_names[stroke] + '(' + stroke + ')' + '的笔画辅助码没有定义');
@@ -151,7 +145,7 @@ function export_stroke_dict_for_rime() {
     }
     var strokes = convert_strokes(char_info[i][2], pinyin_map);
     var code = double_pinyin + strokes;
-    var freq = Math.ceil(Math.pow(10, char_info[i][3]) * 10000000);
+    var freq = Math.ceil(Math.pow(10, char_info[i][3]) * 1e9);
 
     // 生成简码
     var simplified = false;
