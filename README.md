@@ -1,3 +1,42 @@
+# 输入法生成器
+
+[在此](https://macroxue.github.io/shuangpin/eval.html)生成你自己的输入法。
+这是在原来的双拼评测工具的基础上添加的一条龙服务：从评测定制双拼开始，
+到自动键位优化，再到定制笔画顶功，最后输出基于 Rime 输入法框架的配置文件。
+适合追求极度个性化的玩家。
+
+最近折腾了各式各样的双拼加辅助码的输入方式，历程记录在
+[双拼吧](https://tieba.baidu.com/p/6806794788)。到头来还是觉得最佳的输入
+方式就是双拼整句，多数时候都可以不看屏幕依着声韵声韵的舒适节奏快速打字。
+偶尔要回头修改时，可以通过添加辅助码方便地“选字”。而最简单的辅助码就是笔画，
+学习成本接近于零，并且可以在和声母没有冲突时形成顶功，近似于整句输入的体验。
+
+![输出方案](https://github.com/macroxue/shuangpin/blob/master/screenshots/exporter.png)
+
+工具自动生成 Rime 下的三个配置文件。
+ * double_pinyin_stroke.dict.yaml：单字编码字典
+ * double_pinyin_stroke.schema.yaml：单字顶功方案
+ * double_pinyin_smart.schema.yaml：双拼整句加单字顶功方案
+下载后把它们拷贝或移动到 Rime 的配置目录下，然后在 default.custom.yaml 文件
+中添加 double_pinyin_stroke 和 double_pinyin_smart 两个方案，重新部署后就
+可以使用。这些配置都是最基本的，可以自行修改和添加个性化的功能。
+
+使用时既可以连续输入双拼也可以连续输入单字顶功，二者之间的切换仅以空格上屏
+为界，非常自然。
+![单字顶功输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/single_input.png)
+![双拼连续输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/double_input.png)
+
+双拼输入节奏感好，常用词句的转换成功率高。顶功输入按键较多，适合比较离散
+的文本，也可以用来修改不成功的双拼转换。比如双拼并不真正懂得我的心意，这时
+可以用光标键或Tab移动到成功转换的文字之后，以空格键确认，然后移动到需要
+修改的双拼之后输入笔画，加一个代表“点”的 o 键就可以得到正确的“懂”字。
+![混合输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/mixed_input.png)
+
+一个明显的不足是：两种方案的无法共享用户词库。“懂我心意”以顶功方式输入后，
+双拼模式下还是不懂我的心意。目前该工具还不能评测加了辅助码的方案性能，
+以后会实现。原则上该工具可以继续扩展，和其它类型的辅助码对接。不过其它
+辅助码都没有标准，所以码表需要编码者自己提供，实现起来比较麻烦，以后再说吧。
+
 # 双拼评测工具
 
 网上比较流行的双拼评测是基于[击键当量](https://tiansh.github.io/lqbz/sp/)
