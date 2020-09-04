@@ -2,8 +2,8 @@
 
 [在此](https://macroxue.github.io/shuangpin/eval.html)生成你自己的输入法。
 这是在原来的双拼评测工具的基础上添加的一条龙服务：从评测定制双拼开始，
-到自动键位优化，再到定制笔画顶功，最后输出基于 Rime 输入法框架的配置文件。
-适合追求极度个性化的玩家。
+到自动键位优化，再到定制笔画顶功，最后输出基于 [Rime](https://rime.im/)
+输入法框架的配置文件。适合追求极度个性化的玩家。
 
 最近折腾了各式各样的双拼加辅助码的输入方式，历程记录在
 [双拼吧](https://tieba.baidu.com/p/6806794788)。到头来还是觉得最佳的输入
@@ -17,6 +17,7 @@
  * double_pinyin_stroke.dict.yaml：单字编码字典
  * double_pinyin_stroke.schema.yaml：单字顶功方案
  * double_pinyin_smart.schema.yaml：双拼整句加单字顶功方案
+
 下载后把它们拷贝或移动到 Rime 的配置目录下，然后在 default.custom.yaml 文件
 中添加 double_pinyin_stroke 和 double_pinyin_smart 两个方案，重新部署后就
 可以使用。这些配置都是最基本的，可以自行修改和添加个性化的功能。
