@@ -100,6 +100,66 @@ engine:
     - punct_segmentor
     - fallback_segmentor`;
 
+function check_key_map(pinyin_map) {
+  for (var sheng of shengs) {
+    if (pinyin_map[sheng] == null) {
+      alert('声母 ' + sheng + ' 没有定义');
+      return false;
+    }
+  }
+  for (var yun in yuns) {
+    if (pinyin_map[yun] == null) {
+      alert('韵母 ' + yun + ' 没有定义');
+      return false;
+    }
+  }
+  return true;
+}
+
+function check_key_map_with_strokes(pinyin_map) {
+  if (!check_key_map(pinyin_map)) {
+    return false;
+  }
+  for (var stroke in stroke_names) {
+    if (pinyin_map[stroke] == null) {
+      alert(stroke_names[stroke] + '(' + stroke + ')' + '的笔画辅助码没有定义');
+      return false;
+    }
+  }
+  return true;
+}
+
+function get_initials(pinyin_map) {
+  var initials = '';
+  for (var sheng of shengs) {
+    var key = pinyin_map[sheng];
+    if (key != null && initials.indexOf(key) == -1) {
+      initials += key;
+    }
+  }
+  if (pinyin_map['0'] == null) {
+    initials += 'aoe';
+  }
+  return initials;
+}
+
+function get_alphabet(pinyin_map) {
+  var alphabet = get_initials(pinyin_map);
+  for (var yun in yuns) {
+    var key = pinyin_map[yun];
+    if (key != null && alphabet.indexOf(key) == -1) {
+      alphabet += key;
+    }
+  }
+  for (var stroke in stroke_names) {
+    var key = pinyin_map[stroke];
+    if (key != null && alphabet.indexOf(key) == -1) {
+      alphabet += key;
+    }
+  }
+  return alphabet;
+}
+
 function convert_pinyin_to_double(pinyin, pinyin_map) {
   var sheng_yun = split_pinyin(pinyin);
   if (sheng_yun.yun == '') {
@@ -127,13 +187,6 @@ function export_stroke_dict_for_rime() {
   var scheme_name = document.getElementById('scheme-name').value;
   var scheme = get_scheme_from_keyboard();
   var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
-
-  for (var stroke of '-|/\\^') {
-    if (pinyin_map[stroke] == null) {
-      alert(stroke_names[stroke] + '(' + stroke + ')' + '的笔画辅助码没有定义');
-      return '';
-    }
-  }
 
   var code_book = {};
   var dict = '';
@@ -212,6 +265,10 @@ v	v	0
 
 function export_stroke_scheme_for_rime() {
   var scheme_name = document.getElementById('scheme-name').value;
+  var scheme = get_scheme_from_keyboard();
+  var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+  var alphabet = get_alphabet(pinyin_map);
+  var initials = get_initials(pinyin_map);
   return `\
 # Rime schema
 # encoding: utf-8
@@ -239,7 +296,8 @@ ${rime_engine}
     - uniquifier
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyz;/"
+  alphabet: "${alphabet}"
+  initials: "${initials}"
   delimiter: " '"
 
 translator:
@@ -255,6 +313,8 @@ function export_scheme_for_rime(smart) {
   var scheme_name = document.getElementById('scheme-name').value;
   var scheme = get_scheme_from_keyboard();
   var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+  var alphabet = get_alphabet(pinyin_map);
+  var initials = get_initials(pinyin_map);
 
   var zero_sheng_speller = '', sheng_speller = '', yun_speller = '';
   var zero_sheng_translator = '', sheng_translator = '', yun_translator = '';
@@ -353,7 +413,8 @@ ${optional_second_translator}
     - uniquifier
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyz;/"
+  alphabet: "${alphabet}"
+  initials: "${initials}"
   delimiter: " '"
   algebra:
     - erase/^xx$/

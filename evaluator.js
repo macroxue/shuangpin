@@ -856,22 +856,29 @@ function apply_suggestion() {
 }
 
 function export_scheme() {
+  var scheme_name = document.getElementById('scheme-name').value;
+  var scheme = get_scheme_from_keyboard();
+  var pinyin_map = read_pinyin_map_from_scheme(scheme).pinyin_map;
+
   var ime_engine = document.getElementById('ime-engine');
-  var title = document.getElementById('scheme-name').value + ' - ' +
+  var title = scheme_name + ' - ' +
     ime_engine.options[ime_engine.selectedIndex].text;
 
   var config;
   switch (ime_engine.value) {
     case 'fcitx':
-      download("sp.dat", export_scheme_for_fcitx());
+      if (check_key_map(pinyin_map)) {
+        download("sp.dat", export_scheme_for_fcitx());
+      }
       break;
     case 'rime':
-      download("double_pinyin.schema.yaml", export_scheme_for_rime(false));
+      if (check_key_map(pinyin_map)) {
+        download("double_pinyin.schema.yaml", export_scheme_for_rime(false));
+      }
       break;
     case 'rime_smart':
-      var dict = export_stroke_dict_for_rime();
-      if (dict != '') {
-        download("double_pinyin_stroke.dict.yaml", dict);
+      if (check_key_map_with_strokes(pinyin_map)) {
+        download("double_pinyin_stroke.dict.yaml", export_stroke_dict_for_rime());
         download("double_pinyin_stroke.schema.yaml", export_stroke_scheme_for_rime());
         download("double_pinyin_smart.schema.yaml", export_scheme_for_rime(true));
       }
