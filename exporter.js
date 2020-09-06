@@ -302,6 +302,7 @@ speller:
 
 translator:
   dictionary: double_pinyin_stroke
+  enable_user_dict: false
   preedit_format:
     - "xform/^/〔单〕/"
 
@@ -380,6 +381,7 @@ function export_scheme_for_rime(smart) {
     second_translator = `\
 second_translator:
   dictionary: double_pinyin_stroke
+  enable_user_dict: false
   preedit_format:
     - "xform/^/〔单〕/"
 `;
