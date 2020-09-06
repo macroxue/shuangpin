@@ -1,3 +1,5 @@
+var char_pinyin = {};
+
 var schemes = {
   加加:'Q=ing er,W=ei,R=en,T=eng,Y=ong iong,U=ch,I=sh,O=uo,P=ou,S=ai,D=ao,F=an,G=ang,H=iang uang,J=ian,K=iao,L=in,Z=un,X=ve ue uai,C=uan,V=zh ui,B=ia ua,N=iu,M=ie',
   小鹤:'Q=iu,W=ei,R=uan er,T=ve ue,Y=un,U=sh,I=ch,O=uo,P=ie,S=ong iong,D=ai,F=en,G=eng,H=ang,J=an,K=ing uai,L=iang uang,Z=ou,X=ia ua,C=ao,V=zh ui,B=in,N=iao,M=ian',
@@ -135,7 +137,7 @@ function stat_pinyin() {
       last_yun = punctuation;
       continue;
     }
-    var pinyin = hanzi_pinyin[c];
+    var pinyin = char_pinyin[c];
     if (pinyin == null) {
       continue;
     }
@@ -202,7 +204,19 @@ function show_pinyin_stats(type) {
 }
 
 function initialize_on_load() {
+  build_char_pinyin_map();
   select_scheme();
+}
+
+function build_char_pinyin_map() {
+  for (var i = 0; i < char_info.length; ++i) {
+    var char = char_info[i][0];
+    var pinyin = char_info[i][1];
+    // char_info 已经按频率排好序，每个多音字都只取最高频的读音
+    if (char_pinyin[char] == null) {
+      char_pinyin[char] = pinyin;
+    }
+  }
 }
 
 function select_scheme() {
@@ -456,7 +470,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
       key_strokes += punctuation;
       continue;
     }
-    var pinyin = hanzi_pinyin[c];
+    var pinyin = char_pinyin[c];
     if (pinyin == null) {
       ignored += c;
       continue;
