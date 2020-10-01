@@ -1,0 +1,150 @@
+# Rime schema
+# encoding: utf-8
+
+schema:
+  schema_id: mars_fu
+  name: 火星双拼笔
+  author:
+    - 麦可数
+  description: |
+    压缩地球拼音而来的带调双拼 + 笔画辅助
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: simplification
+    reset: 1
+    states: [ 漢字, 汉字 ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - simplifier
+    - uniquifier
+
+speller:
+  alphabet: "abcdefghijklmnopqrstuvwxyz;,./'"
+  initials: "bpmfdtnlgkhjqxzcsryweav'"
+  delimiter: " `"
+  algebra:
+    - erase/^xx$/
+    - xform=:h=:u=
+    - xform=:s=:i=
+    - xform=:p=:o=
+    - xform=:n=:;=
+    - xform=:z=:/=
+    - xform=:(.)h=:$1u=
+    - xform=:(.)s=:$1i=
+    - xform=:(.)p=:$1o=
+    - xform=:(.)n=:$1;=
+    - xform=:(.)z=:$1/=
+    - xform=:(..)h=:$1u=
+    - xform=:(..)s=:$1i=
+    - xform=:(..)p=:$1o=
+    - xform=:(..)n=:$1;=
+    - xform=:(..)z=:$1/=
+    - xform=:(...)h=:$1u=
+    - xform=:(...)s=:$1i=
+    - xform=:(...)p=:$1o=
+    - xform=:(...)n=:$1;=
+    - xform=:(...)z=:$1/=
+    - xform/^([aoe].*)$/R$1/
+    - xform/^zh/E/
+    - xform/^ch/A/
+    - xform/^sh/V/
+    - xform/[iu]?ang[4]:/Y/
+    - xform/[iu]?ang[23]:/H/
+    - xform/[iu]?ang[15]:/N/
+    - xform/[ei]ng[4]:/R/
+    - xform/[ei]ng[23]:/F/
+    - xform/[ei]ng[15]:/V/
+    - xform/v[4]:/R/
+    - xform/v[23]:/F/
+    - xform/v[15]:/V/
+    - xform/[iuv]?an[4]:/T/
+    - xform/[iuv]?an[23]:/G/
+    - xform/[iuv]?an[15]:/B/
+    - xform/[eiuv]n[4]:/W/
+    - xform/[eiuv]n[23]:/S/
+    - xform/[eiuv]n[15]:/X/
+    - xform/i?ao[4]:/P/
+    - xform/i?ao[23]:/;/
+    - xform=i?ao[15]:=/=
+    - xform/u?o[4]:/O/
+    - xform/u?o[23]:/L/
+    - xform/u?o[15]:/./
+    - xform/[io]u[4]:/Q/
+    - xform/[io]u[23]:/A/
+    - xform/[io]u[15]:/Z/
+    - xform/u[4]:/U/
+    - xform/u[23]:/J/
+    - xform/u[15]:/M/
+    - xform/i?ong[4]:/O/
+    - xform/i?ong[23]:/L/
+    - xform/i?ong[15]:/./
+    - xform/[iu]?a[4]:/Q/
+    - xform/[iu]?a[23]:/A/
+    - xform/[iu]?a[15]:/Z/
+    - xform/[iuv]?e[4]:/E/
+    - xform/[iuv]?e[23]:/D/
+    - xform/[iuv]?e[15]:/C/
+    - xform/[eu]i[4]:/E/
+    - xform/[eu]i[23]:/D/
+    - xform/[eu]i[15]:/C/
+    - xform/u?ai[4]:/R/
+    - xform/u?ai[23]:/F/
+    - xform/u?ai[15]:/V/
+    - xform/i[4]:/I/
+    - xform/i[23]:/K/
+    - xform/i[15]:/,/
+    - xform/er[4]:/I/
+    - xform/er[23]:/K/
+    - xform/er[15]:/,/
+    - xform/://
+    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+    - derive/^(..).*$/$1/
+    - derive/^(...).*$/$1/
+    - derive/^(....).*$/$1/
+    - derive/^(.....).*$/$1/
+    - derive/^(......).*$/$1/
+
+translator:
+  dictionary: mars_fu
+  preedit_format:
+    - "xform/^/〔火〕/"
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+  bindings:
+    - { when: has_menu, accept: comma, send: comma }
+    - { when: has_menu, accept: period, send: period }
+    - { when: has_menu, accept: bracketleft, send: Prior }
+    - { when: has_menu, accept: bracketright, send: Next }
+
+recognizer:
+  import_preset: default
