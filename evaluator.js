@@ -7,10 +7,11 @@ var schemes = {
   智能ABC:'Q=ei,W=ian,E=ch,R=iu er,T=iang uang,Y=ing,O=uo 0,P=uan,A=zh,S=ong iong,D=ia ua,F=en,G=eng,H=ang,J=an,K=ao,L=ai,Z=iao,X=ie,C=in uai,V=sh,B=ou,N=un,M=ui ve ue',
   紫光:'Q=ao,W=en,R=an,T=eng,Y=in uai,U=zh,I=sh,O=uo 0,P=ai,A=ch,S=ang,D=ie,F=ian,G=iang uang,H=ong iong,J=iu er,K=ei,L=uan,FH=ing,Z=ou,X=ia ua,B=iao,N=ui ve ue,M=un',
   自然码:'Q=iu,W=ia ua,R=uan er,T=ve ue,Y=ing uai,U=sh,I=ch,O=uo,P=un,S=ong iong,D=iang uang,F=en,G=eng,H=ang,J=an,K=ao,L=ai,Z=ei,X=ie,C=iao,V=zh ui,B=ou,N=in,M=ian',
-  六六:'W=ao,R=ei,T=ian,Y=iao,U=sh,I=ch,O=uo,P=ou,S=ai,D=en,F=eng,G=ua ia,H=uai ue ve,J=un,K=in,L=ing,FH=ong iong,Z=an,X=ang,C=ie er,V=zh ui,B=uan,N=uang iang,M=iu',
+  国标:'Q=ia ua,W=uan,R=en,T=ie,Y=iu uai,U=sh,I=ch,O=uo,P=ou,A=0,S=ong iong,D=ian,F=an,G=ang,H=eng,J=ing,K=ai,L=in er,Z=un,X=ue ve,C=ao,V=zh ui,B=ei,N=iang uang,M=iao',
   UAI优化:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo 0,P=un,S=ao,D=ang,F=eng,G=ing er,H=ong iong,J=ai,K=an,L=ian uai,FH=iang uang,X=ia ua,C=ie,B=in,N=iao,M=ei',
   UAI优化顶功:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo -,P=un,A=^,S=ao,D=ang,F=eng er,G=ing,H=ong iong,J=ai 0,K=an,L=ian uai,FH=iang uang \\,X=ia ua,C=ie,V=|,B=in,N=iao,M=ei,CH=/',
   乱序优化:'Q=ua,W=x uan,E=q uang v,R=j ue ve ui,T=0 un,Y=c iu,U=g ing,I=k iong ou,O=h iang,P=ie,A=t ong,S=l ao,D=y ai,F=d an,G=n ang,H=r in,J=sh e,K=w i er,L=zh u,FH=ch a ia,Z=p ei,X=m en,C=f eng,V=b o uo,B=uai,N=s iao,M=z ian',
+  六六:'W=ao,R=ei,T=ian,Y=iao,U=sh,I=ch,O=uo,P=ou,S=ai,D=en,F=eng,G=ua ia,H=uai ue ve,J=un,K=in,L=ing,FH=ong iong,Z=an,X=ang,C=ie er,V=zh ui,B=uan,N=uang iang,M=iu',
   自定义:'Q=,W=,E=,R=,T=,Y=,U=,I=,O=,P=,A=,S=,D=,F=,G=,H=,J=,K=,L=,FH=,Z=,X=,C=,V=,B=,N=,M=,DH=,JH=,CH=',
   empty:'Q=,W=,E=,R=,T=,Y=,U=,I=,O=,P=,A=,S=,D=,F=,G=,H=,J=,K=,L=,FH=,Z=,X=,C=,V=,B=,N=,M=,DH=,JH=,CH=',
   全拼:'Q=,W=,E=,R=,T=,Y=,U=,I=,O=,P=,A=,S=,D=,F=,G=,H=,J=,K=,L=,FH=,Z=,X=,C=,V=,B=,N=,M=,DH=,JH=,CH='
