@@ -4,7 +4,7 @@ import argparse
 import opencc
 
 parser = argparse.ArgumentParser(description='准备编码文件')
-parser.add_argument('-c', '--count', help='取频率排前的N字', type=int, default='7000')
+parser.add_argument('-c', '--count', help='取频率排前的N字', type=int, default='70000')
 args = parser.parse_args()
 
 converter = opencc.OpenCC('t2s')
