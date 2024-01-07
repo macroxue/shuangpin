@@ -11,7 +11,7 @@
 偶尔要回头修改时，可以通过添加辅助码方便地“选字”。而最简单的辅助码就是笔画，
 学习成本接近于零，并且可以在和声母没有冲突时形成顶功，近似于整句输入的体验。
 
-![输出方案](https://github.com/macroxue/shuangpin/blob/master/screenshots/exporter.png)
+![输出方案](https://macroxue.github.io/shuangpin/screenshots/exporter.png)
 
 工具自动生成 Rime 下的三个配置文件。
  * double_pinyin_stroke.dict.yaml：单字编码字典
@@ -24,14 +24,14 @@
 
 使用时既可以连续输入双拼也可以连续输入单字顶功，二者之间的切换仅以空格上屏
 为界，非常自然。
-![单字顶功输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/single_input.png)
-![双拼连续输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/double_input.png)
+![单字顶功输入](https://macroxue.github.io/shuangpin/screenshots/single_input.png)
+![双拼连续输入](https://macroxue.github.io/shuangpin/screenshots/double_input.png)
 
 双拼输入节奏感好，常用词句的转换成功率高。顶功输入按键较多，适合比较离散
 的文本，也可以用来修改不成功的双拼转换。比如双拼并不真正懂得我的心意，这时
 可以用光标键或Tab移动到成功转换的文字之后，以空格键确认，然后移动到需要
 修改的双拼之后输入笔画，加一个代表“点”的 o 键就可以得到正确的“懂”字。
-![混合输入](https://github.com/macroxue/shuangpin/blob/master/screenshots/mixed_input.png)
+![混合输入](https://macroxue.github.io/shuangpin/screenshots/mixed_input.png)
 
 一个明显的不足是：两种方案的无法共享用户词库。“懂我心意”以顶功方式输入后，
 双拼模式下还是不懂我的心意。目前该工具还不能评测加了辅助码的方案性能，
@@ -70,7 +70,7 @@
 下面是评测UAI优化方案的屏幕截图。其得分高达134.8，比常用的流行方案高出8到12
 分不等。
 
-![UAI优化双拼方案](https://github.com/macroxue/shuangpin/blob/master/UAI优化/eval.png)
+![UAI优化双拼方案](https://macroxue.github.io/shuangpin/UAI优化/eval.png)
 
 几个假设：
  * 根据习惯，单韵母 a、o、e、i、u、ü 分别固定在 A、O、E、I、U、V 键位。
@@ -124,7 +124,7 @@ chen、gen都很顺手。x和en不可拼，所以en没有同指跨行。
 特点是以两次击键表示声韵调组合。诸位要问了，声韵调共有一千多种组合，两次
 击键怎么够用呢？是不够，那就压缩呗，下图就是方案。
 
-![火星键位](https://github.com/macroxue/shuangpin/blob/master/mars火星/scheme.png)
+![火星键位](https://macroxue.github.io/shuangpin/mars火星/scheme.png)
 
 编码规则非常简单。所有编码因素，声、韵、调、笔，都有规范可循。
  * 第一码：声母，23键。需要记忆zh、ch、sh、零声母的键位。
@@ -139,20 +139,20 @@ chen、gen都很顺手。x和en不可拼，所以en没有同指跨行。
 
 下面是两个例子，由于火星双拼的准确率非常高，辅助码只用到了一次。
 
-![输入例子](https://github.com/macroxue/shuangpin/blob/master/mars火星/examples.png)
+![输入例子](https://macroxue.github.io/shuangpin/mars火星/examples.png)
 
 双拼整句输入已经非常方便了，为了追求更少的击键量，还可以添加词组。双拼打二字词
 已经是得心应手，没有必要再画蛇添足，所以只需要考虑三字或更长的词组就可以了。
 词组以隔音符号引导，只包含简码，和整句输入自然混合而不冲突。如图所示，41个字和
 3个标点，总共74键。
 
-![输入词组](https://github.com/macroxue/shuangpin/blob/master/mars火星/phrase.png)
+![输入词组](https://macroxue.github.io/shuangpin/mars火星/phrase.png)
 
 词组既可以双拼输入，也可以简拼输入，词组简拼就像笔画辅助码一样，可用可不用。
 美中不足的是自动造的新词不能直接用简拼，需要手动加入到简拼词典里。
 
 Rime 的三个 .yaml 配置文件可以在
-[mars火星](https://github.com/macroxue/shuangpin/blob/master/mars火星)
+[mars火星](https://macroxue.github.io/shuangpin/mars火星)
 目录下找到。把它们拷贝到 Rime 的配置目录下，然后在 default.custom.yaml 文件
 中添加 mars 方案，重新部署后就可以使用。
 
@@ -163,9 +163,9 @@ Rime 的三个 .yaml 配置文件可以在
 映射键位就得到了地球双拼。其用法和普通双拼无异，需要时可以在任何一个字之后
 添加其笔画作为辅助码，以提高转换的成功率。
 
-![地球键位](https://github.com/macroxue/shuangpin/blob/master/earth地球/scheme.png)
+![地球键位](https://macroxue.github.io/shuangpin/earth地球/scheme.png)
 
-配置文件可以在[earth地球](https://github.com/macroxue/shuangpin/blob/master/earth地球)
+配置文件可以在[earth地球](https://macroxue.github.io/shuangpin/earth地球)
 目录下找到。把它拷贝到 Rime 的配置目录下，然后在 default.custom.yaml 文件
 中添加 earth 方案，重新部署后就可以使用。新方案依赖于火星双拼的字典，所以
 火星双拼要先部署。
@@ -183,7 +183,7 @@ Rime 的三个 .yaml 配置文件可以在
 于是本人设计了一个极小记忆量的新方案，并认为不可能还有更小记忆量的了。
 有了它，忘了就忘了吧，捡起来也就是分分钟的事。下面隆重推出：
 
-![六六双拼方案](https://github.com/macroxue/shuangpin/blob/master/66六六/scheme.jpg)
+![六六双拼方案](https://macroxue.github.io/shuangpin/66六六/scheme.jpg)
 
 本方案把键盘划分为六个规整的区域，每个区域最多六键，方案也因此得名。
 每个区域内由一个根韵母根据简单而统一的规则派生出其它韵母。十分难得的是，
