@@ -1,0 +1,136 @@
+# Rime schema
+# encoding: utf-8
+
+schema:
+  schema_id: earth
+  name: 地球双拼笔
+  author:
+    - 麦可数
+  description: |
+    双拼 + 笔画辅助
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  - name: simplification
+    reset: 1
+    states: [ 漢字, 汉字 ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+  filters:
+    - simplifier
+    - uniquifier
+
+speller:
+  alphabet: "bpmfdtnlgkhjqxeiurzcsywao;v/"
+  initials: "bpmfdtnlgkhjqxeiurzcsyw"
+  delimiter: " '"
+  algebra:
+    - xform=:h=:o=         # 横笔键位
+    - xform=:s=:v=         # 竖笔键位
+    - xform=:p=:/=         # 撇笔键位
+    - xform=:n=:;=         # 捺/点笔键位
+    - xform=:z=:a=         # 折笔键位
+    - xform=:(.)h=:$1o=    # 重复5次，最多5个笔画辅助码
+    - xform=:(.)s=:$1v=
+    - xform=:(.)p=:$1/=
+    - xform=:(.)n=:$1;=
+    - xform=:(.)z=:$1a=
+    - xform=:(..)h=:$1o=
+    - xform=:(..)s=:$1v=
+    - xform=:(..)p=:$1/=
+    - xform=:(..)n=:$1;=
+    - xform=:(..)z=:$1a=
+    - xform=:(...)h=:$1o=
+    - xform=:(...)s=:$1v=
+    - xform=:(...)p=:$1/=
+    - xform=:(...)n=:$1;=
+    - xform=:(...)z=:$1a=
+    - xform=:(....)h=:$1o=
+    - xform=:(....)s=:$1v=
+    - xform=:(....)p=:$1/=
+    - xform=:(....)n=:$1;=
+    - xform=:(....)z=:$1a=
+    - derive/^([jqxy])u[1-5]:/$1v/  # ju或jv皆可，类似飞键
+    - xform/^([aoe].*):/J$1:/       # 零声母的位置
+    - xform/^zh/E/                  # zh的位置
+    - xform/^ch/I/                  # ch的位置
+    - xform/^sh/U/                  # sh的位置
+    - xform/iang[1-5]:/;/           # 韵母位置，长的先来
+    - xform/iong[1-5]:/H/
+    - xform/uang[1-5]:/;/
+    - xform/ang[1-5]:/D/
+    - xform/eng[1-5]:/F/
+    - xform/ian[1-5]:/L/
+    - xform/iao[1-5]:/N/
+    - xform/ing[1-5]:/G/
+    - xform/ong[1-5]:/H/
+    - xform/uai[1-5]:/L/
+    - xform/uan[1-5]:/Y/
+    - xform/ai[1-5]:/J/
+    - xform/an[1-5]:/K/
+    - xform/ao[1-5]:/S/
+    - xform/ei[1-5]:/M/
+    - xform/en[1-5]:/W/
+    - xform/er[1-5]:/F/
+    - xform/ia[1-5]:/X/
+    - xform/ie[1-5]:/C/
+    - xform/in[1-5]:/B/
+    - xform/iu[1-5]:/Q/
+    - xform/ou[1-5]:/R/
+    - xform/ua[1-5]:/X/
+    - xform/ue[1-5]:/T/
+    - xform/ui[1-5]:/T/
+    - xform/un[1-5]:/P/
+    - xform/uo[1-5]:/O/
+    - xform/ve[1-5]:/T/
+    - xform/[1-5]://
+    - xlit/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+    - derive/^(..).*$/$1/      # 辅助码无需打全
+    - derive/^(...).*$/$1/
+    - derive/^(....).*$/$1/
+    - derive/^(.....).*$/$1/
+    - derive/^(......).*$/$1/
+
+translator:
+  dictionary: mars
+  prism: earth
+  preedit_format:
+    - "xform/$/〔地〕/"
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+  bindings:
+    - { when: has_menu, accept: comma, send: comma }
+    - { when: has_menu, accept: period, send: period }
+    - { when: has_menu, accept: bracketleft, send: Prior }
+    - { when: has_menu, accept: bracketright, send: Next }
+
+recognizer:
+  import_preset: default

@@ -154,7 +154,24 @@ chen、gen都很顺手。x和en不可拼，所以en没有同指跨行。
 Rime 的三个 .yaml 配置文件可以在
 [mars火星](https://github.com/macroxue/shuangpin/blob/master/mars火星)
 目录下找到。把它们拷贝到 Rime 的配置目录下，然后在 default.custom.yaml 文件
-中添加 mars_fu 方案，重新部署后就可以使用。
+中添加 mars 方案，重新部署后就可以使用。
+
+
+# 地球双拼
+
+如果火星上过于激进和危险，那么让我们回到地球上来，把火星双拼除去声调后重新
+映射键位就得到了地球双拼。其用法和普通双拼无异，需要时可以在任何一个字之后
+添加其笔画作为辅助码，以提高转换的成功率。
+
+![地球键位](https://github.com/macroxue/shuangpin/blob/master/earth地球/scheme.png)
+
+配置文件可以在[earth地球](https://github.com/macroxue/shuangpin/blob/master/earth地球)
+目录下找到。把它拷贝到 Rime 的配置目录下，然后在 default.custom.yaml 文件
+中添加 earth 方案，重新部署后就可以使用。新方案依赖于火星双拼的字典，所以
+火星双拼要先部署。
+
+因为没有声调，“是”和“时”这两个常用字既无法以拼音区分也无法以前6个笔画区分。
+刚好 uv 二键码是空闲的，于是就分给“是”字专用。
 
 
 # 六六双拼方案

@@ -22,7 +22,7 @@
 #
 
 ---
-name: mars_fu
+name: mars
 version: "2020.09.28"
 sort: by_weight
 use_preset_vocabulary: true
@@ -14454,6 +14454,7 @@ import_tables:
 昭	zhao1:szhhz
 昮	zong4:szhhh
 是	shi4:szhhh
+是	shv4:szhhh
 昰	shi4:szhhh
 昱	yu4:szhhn
 昲	fei4:szhhz

@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 schema:
-  schema_id: mars_fu
+  schema_id: mars
   name: 火星双拼笔
   author:
     - 麦可数
@@ -131,9 +131,9 @@ speller:
     - derive/^(......).*$/$1/
 
 translator:
-  dictionary: mars_fu
+  dictionary: mars
   preedit_format:
-    - "xform/^/〔火〕/"
+    - "xform/$/〔火〕/"
 
 punctuator:
   import_preset: default
