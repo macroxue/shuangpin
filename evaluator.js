@@ -443,7 +443,7 @@ function all_pinyin_to_key_strokes(sheng_yun_key_map) {
       key_pinyin_map[conversion.key_strokes] = all_pinyin[i];
     } else {
       error += all_pinyin[i] + '和' + existing_pinyin + '都是' +
-        conversion.key_strokes + '\n';
+        conversion.key_strokes.toUpperCase() + '\n';
     }
   }
   return {pinyin_key_map: pinyin_key_map, error: error};
@@ -469,7 +469,8 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
   // Convert characters to key strokes.
   var input = document.getElementById('input-text').value;
   var key_strokes = '';
-  var ignored = '';
+  var ignored_chars = new Set();
+  var ignored_pinyins = new Set();
   for (var i = 0; i < input.length; ++i) {
     var c = input[i].trim();
     if (c == '') {
@@ -482,12 +483,21 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
     }
     var pinyin = char_pinyin[c];
     if (pinyin == null) {
-      ignored += c;
+      ignored_chars.add(c);
+      continue;
+    }
+    if (!(pinyin in pinyin_key_map)) {
+      ignored_pinyins.add(pinyin);
       continue;
     }
     key_strokes += pinyin_key_map[pinyin];
   }
-  // console.log('忽略: ' + ignored);
+  if (ignored_chars.size > 0) {
+    console.log('忽略的字符: ' + Array.from(ignored_chars).join(''));
+  }
+  if (ignored_pinyins.size > 0) {
+    console.log('忽略的拼音: ' + Array.from(ignored_pinyins).join('，'));
+  }
   return {strokes:key_strokes, error:error};
 }
 
@@ -581,7 +591,7 @@ function show_results(scheme_name) {
   var time = result.time;
   var speed = hits / time;
   var total_distance = result.effective_distance + result.overlap_distance;
-  set_inner_html('error', result.error);
+  set_inner_html('error', result.error.trim().replace(/\n/g, '，'));
   set_inner_html('score', (speed * 100).toFixed(1) + '分');
   set_inner_html('hits', hits);
   set_inner_html('time', Math.round(time));
