@@ -59,6 +59,7 @@ div.result {
 }
 div.result #error {
   background: #ff0;
+  font-size: smaller;
 }
 div.result textarea {
   position: relative;
@@ -68,6 +69,9 @@ div.result select {
   position: relative;
   top: 4px;
   width: 200px;
+}
+td.result {
+  vertical-align: top;
 }
 table[class='stats'], td[class='stats'] {
   background: #fed;

@@ -8,6 +8,8 @@ var schemes = {
   紫光:'Q=ao,W=en,R=an,T=eng,Y=in uai,U=zh,I=sh,O=uo 0,P=ai,A=ch,S=ang,D=ie,F=ian,G=iang uang,H=ong iong,J=iu er,K=ei,L=uan,FH=ing,Z=ou,X=ia ua,B=iao,N=ui ve ue,M=un',
   自然码:'Q=iu,W=ia ua,R=uan er,T=ve ue,Y=ing uai,U=sh,I=ch,O=uo,P=un,S=ong iong,D=iang uang,F=en,G=eng,H=ang,J=an,K=ao,L=ai,Z=ei,X=ie,C=iao,V=zh ui,B=ou,N=in,M=ian',
   国标:'Q=ia ua,W=uan,R=en,T=ie,Y=iu uai,U=sh,I=ch,O=uo,P=ou,A=0,S=ong iong,D=ian,F=an,G=ang,H=eng,J=ing,K=ai,L=in er,Z=un,X=ue ve,C=ao,V=zh ui,B=ei,N=iang uang,M=iao',
+  大牛:'Q=ua ian,W=vn ei,E=0,R=ou,T=iu,Y=un,U=sh er,I=ch,O=zh uo,P=ie,A=zh,S=ao,D=an,F=ang,G=uai ing,H=ai ue,J=eng van,K=en ia,L=ong iong,Z=uan,X=ve uang,C=ian,V=sh ui,B=in,N=ui iang,M=iao',
+  飞猫:'Q=c uan,W=s ue ve,E=y ing uang,R=k in uai,T=g iu,Y=n eng vn,U=f an,I=m e,O=0 ou,P=d a,A=sh ang,S=l ei,D=d ian ua,F=ch un,G=h ui er iang,H=w uo o,J=j ao,K=q i,L=p u,Z=z v,X=b i,C=zh ie,V=r en ia,B=t iao,N=sh ong iong,M=x ai van',
   UAI优化:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo 0,P=un,S=ao,D=ang,F=eng,G=ing er,H=ong iong,J=ai,K=an,L=ian uai,FH=iang uang,X=ia ua,C=ie,B=in,N=iao,M=ei',
   UAI优化顶功:'Q=iu,W=en,E=zh,R=ou,T=ue ve ui,Y=uan,U=sh,I=ch,O=uo -,P=un,A=^,S=ao,D=ang,F=eng er,G=ing,H=ong iong,J=ai 0,K=an,L=ian uai,FH=iang uang \\,X=ia ua,C=ie,V=|,B=in,N=iao,M=ei,CH=/',
   乱序优化:'Q=ua,W=x uan,E=q uang v,R=j ue ve ui,T=0 un,Y=c iu,U=g ing,I=k iong ou,O=h iang,P=ie,A=t ong,S=l ao,D=y ai,F=d an,G=n ang,H=r in,J=sh e,K=w i er,L=zh u,FH=ch a ia,Z=p ei,X=m en,C=f eng,V=b o uo,B=uai,N=s iao,M=z ian',
@@ -384,12 +386,12 @@ function read_pinyin_map_from_scheme(scheme) {
       if (py == '') {
         continue;
       }
-      var existing_key = pinyin_map[py];
-      if (existing_key != null && existing_key != key) {
-        error += py + '在' + existing_key.toUpperCase() + '和'
-          + key.toUpperCase() + '上\n';
+      if (py in pinyin_map) {
+        pinyin_map[py] += key;
+        error += py + '在' + pinyin_map[py].toUpperCase().split('').join('和') + '上\n';
+      } else {
+        pinyin_map[py] = key;
       }
-      pinyin_map[py] = key;
     }
   }
 
@@ -403,7 +405,7 @@ function read_pinyin_map_from_scheme(scheme) {
   return {pinyin_map: pinyin_map, error:error};
 }
 
-function pinyin_to_key_strokes(pinyin, sheng_yun_key_map) {
+function pinyin_to_key_strokes(pinyin, sheng_yun_key_map, layout, is_staggered) {
   var sheng_yun = split_pinyin(pinyin);
   var sheng = sheng_yun.sheng;
   var yun = sheng_yun.yun;
@@ -425,15 +427,19 @@ function pinyin_to_key_strokes(pinyin, sheng_yun_key_map) {
     var error = '无法打出拼音' + pinyin + '=' + sheng + '+' + yun + '\n';
     return {key_strokes: '', error: error};
   }
-  return {key_strokes: sheng_key + yun_key, error: ''};
+  var best = get_multi_key_pair_time(sheng_key, yun_key, layout, is_staggered);
+  return {key_strokes: best.key_strokes, error: ''};
 }
 
 function all_pinyin_to_key_strokes(sheng_yun_key_map) {
+  var geometry = document.getElementById('geometry').value;
+  var is_staggered = (geometry == 'staggered');
+  var layout = get_layout();
   var pinyin_key_map = {};
   var key_pinyin_map = {};
   var error = '';
   for (var i = 0; i < all_pinyin.length; ++i) {
-    var conversion = pinyin_to_key_strokes(all_pinyin[i], sheng_yun_key_map);
+    var conversion = pinyin_to_key_strokes(all_pinyin[i], sheng_yun_key_map, layout, is_staggered);
     if (conversion.error != '') {
       return {pinyin_key_map: {}, error: conversion.error};
     }
@@ -446,6 +452,7 @@ function all_pinyin_to_key_strokes(sheng_yun_key_map) {
         conversion.key_strokes.toUpperCase() + '\n';
     }
   }
+  //console.log(pinyin_key_map);
   return {pinyin_key_map: pinyin_key_map, error: error};
 }
 
@@ -488,6 +495,10 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
     }
     if (!(pinyin in pinyin_key_map)) {
       ignored_pinyins.add(pinyin);
+      continue;
+    }
+    if (!(pinyin in pinyin_key_map)) {
+      ignored += c;
       continue;
     }
     key_strokes += pinyin_key_map[pinyin];
@@ -726,6 +737,38 @@ function total_pairs(pair_freq) {
   return total;
 }
 
+function get_key_pair_time(first_key, second_key, layout, is_staggered) {
+  var x0 = layout[first_key][0];
+  var y0 = layout[first_key][1];
+  var x1 = layout[second_key][0];
+  var y1 = layout[second_key][1];
+
+  var f0 = column_finger[x0];
+  var f1 = column_finger[x1];
+  var same_hand = is_left(x0) == is_left(x1);
+
+  var d = press_depth;
+  if (f0 == f1) {
+    d += distance(x0, y0, x1, y1, is_staggered);
+  } else if (same_hand) {
+    d += distance(x0 + f1 - f0, y0, x1, y1, is_staggered);
+  }
+
+  return d / finger_speed[f1];
+}
+
+function get_multi_key_pair_time(sheng_keys, yun_keys, layout, is_staggered) {
+  var combo_costs = {}
+  for (var s in sheng_keys) {
+    for (var y in yun_keys) {
+      cost = get_key_pair_time(sheng_keys[s], yun_keys[y], layout, is_staggered);
+      combo_costs[sheng_keys[s] + yun_keys[y]] = cost;
+    }
+  }
+  var [best_combo] = Object.entries(combo_costs).sort(([ ,v1], [ ,v2]) => v1 - v2);
+  return {key_strokes: best_combo[0], hit_time: best_combo[1]};
+}
+
 function fast_evaluate_scheme(pinyin_map, pair_freq) {
   var geometry = document.getElementById('geometry').value;
   var is_staggered = (geometry == 'staggered');
@@ -755,24 +798,13 @@ function fast_evaluate_scheme(pinyin_map, pair_freq) {
       if (second_key == null) {
         second_key = second;
       }
-      var x0 = layout[first_key][0];
-      var y0 = layout[first_key][1];
-      var x1 = layout[second_key][0];
-      var y1 = layout[second_key][1];
-
-      var f0 = column_finger[x0];
-      var f1 = column_finger[x1];
-      var same_hand = is_left(x0) == is_left(x1);
-
-      var d = press_depth;
-      if (f0 == f1) {
-        d += distance(x0, y0, x1, y1, is_staggered);
-      } else if (same_hand) {
-        d += distance(x0 + f1 - f0, y0, x1, y1, is_staggered);
+      if (first_key.length > 1 || second_key.length > 1) {
+        var best = get_multi_key_pair_time(first_key, second_key, layout, is_staggered);
+        time += best.hit_time * pair_freq[first][second];
+      } else {
+        var hit_time = get_key_pair_time(first_key, second_key, layout, is_staggered);
+        time += hit_time * pair_freq[first][second];
       }
-
-      var hit_time = d / finger_speed[f1];
-      time += hit_time * pair_freq[first][second];
     }
   }
   return time;
@@ -796,12 +828,9 @@ function improve_scheme() {
     }
     var first_pinyin = [];
     for (var pinyin in pinyin_map) {
-      if (pinyin_map[pinyin] == first && first != pinyin) {
+      if (pinyin_map[pinyin].includes(first) && first != pinyin) {
         first_pinyin.push(pinyin);
       }
-    }
-    if (first_pinyin == []) {
-      continue;
     }
     for (var second in layout) {
       if (first >= second || fixed_keys.includes(second)) {
@@ -809,19 +838,16 @@ function improve_scheme() {
       }
       var second_pinyin = [];
       for (var pinyin in pinyin_map) {
-        if (pinyin_map[pinyin] == second && second != pinyin) {
+        if (pinyin_map[pinyin].includes(second) && second != pinyin) {
           second_pinyin.push(pinyin);
         }
       }
-      if (second_pinyin == []) {
-        continue;
-      }
       // Swap assignments.
       for (var i = 0; i < first_pinyin.length; ++i) {
-        pinyin_map[first_pinyin[i]] = second;
+        pinyin_map[first_pinyin[i]] = pinyin_map[first_pinyin[i]].replace(first, second);
       }
       for (var i = 0; i < second_pinyin.length; ++i) {
-        pinyin_map[second_pinyin[i]] = first;
+        pinyin_map[second_pinyin[i]] = pinyin_map[second_pinyin[i]].replace(second, first);
       }
 
       var time = fast_evaluate_scheme(pinyin_map, sheng_yun_freq)
@@ -835,10 +861,10 @@ function improve_scheme() {
 
       // Undo swap.
       for (var i = 0; i < first_pinyin.length; ++i) {
-        pinyin_map[first_pinyin[i]] = first;
+        pinyin_map[first_pinyin[i]] = pinyin_map[first_pinyin[i]].replace(second, first);
       }
       for (var i = 0; i < second_pinyin.length; ++i) {
-        pinyin_map[second_pinyin[i]] = second;
+        pinyin_map[second_pinyin[i]] = pinyin_map[second_pinyin[i]].replace(first, second);
       }
     }
   }

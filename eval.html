@@ -35,9 +35,10 @@
               <button id='stat' onclick='stat_pinyin()'>统计拼音频率</button>
               <br/>
               <textarea rows='6' cols='60' id='input-text'>
-  在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
-  定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
-  如果要添加笔画辅助码，则以 -、|、/、\、^ 分别表示横、竖、撇、点(捺)、折。
+1. 在这里输入文稿。最快的方式是拷贝粘帖大量文本，比如一整本小说。处理几十万字不成问题。
+2. 定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
+3. 支持在多个键位上定义同一个声母或韵母，程序会自动选取最佳组合。参见’大牛‘方案。
+4. 如果要添加笔画辅助码，则以 -、|、/、\、^ 分别表示横、竖、撇、点(捺)、折，参见’UAI优化顶功‘方案。
               </textarea>
             </td>
             <td class='stats' id='pinyin-stats-cell'>
@@ -72,6 +73,8 @@
         <p/><b>双拼方案: </b>
         <label>
           <select id='scheme-name' onchange='select_scheme()'>
+            <option value='自定义'>自定义</option>
+            <option value='' disabled='disabled'>───常见───</option>
             <option value='加加'>加加</option>
             <option value='小鹤'>小鹤</option>
             <option value='微软'>微软</option>
@@ -79,15 +82,15 @@
             <option value='紫光'>紫光</option>
             <option value='自然码'>自然码</option>
             <option value='国标'>国标</option>
-            <option value='' disabled='disabled'>-------</option>
+            <option value='' disabled='disabled'>───特殊───</option>
+            <option value='大牛'>大牛</option>
+            <option value='飞猫'>飞猫</option>
+            <option value='乱序优化'>乱序优化</option>
+            <option value='全拼'>全拼</option>
+            <option value='' disabled='disabled'>───私人───</option>
             <option value='UAI优化'>UAI优化</option>
             <option value='UAI优化顶功'>UAI优化顶功</option>
-            <option value='乱序优化'>乱序优化</option>
             <option value='六六'>六六</option>
-            <option value='' disabled='disabled'>-------</option>
-            <option value='自定义'>自定义</option>
-            <option value='' disabled='disabled'>-------</option>
-            <option value='全拼'>全拼</option>
           </select>
         </label>
         <button onclick='evaluate_current_scheme()'>评测当前方案</button>
@@ -166,7 +169,7 @@
       <div class='result' id='result'>
         <table>
           <tr>
-            <td>
+            <td class='result'>
               <p/><b>评测结果：</b> <b id='score'></b> &nbsp; <b id='error'></b>
               <br/>
               <table>
@@ -274,10 +277,10 @@
             <td>
               &nbsp; &nbsp; &nbsp;
             </td>
-            <td id='improvement'>
+            <td class='result' id='improvement'>
               <p/><b>优化：</b>
               <button id='improve' onclick='improve_scheme()'>建议</button><br/>
-              <select id='suggestion' onclick='apply_suggestion()' size=13>
+              <select id='suggestion' onclick='apply_suggestion()' size=10>
               </select>
             </td>
           </tr>
