@@ -78,6 +78,8 @@ var punctuations = {
     '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
 };
 
+var letters = 'abcdefghijklmnopqrstuvwxyz';
+
 function split_pinyin(pinyin) {
   if (pinyin == 'ng') {
     pinyin = 'eng';
@@ -396,7 +398,6 @@ function read_pinyin_map_from_scheme(scheme) {
   }
 
   // Setup default mapping for single letters.
-  var letters = 'abcdefghijklmnopqrstuvwxyz';
   for (var i = 0; i < letters.length; ++i) {
     if (pinyin_map[letters[i]] == null) {
       pinyin_map[letters[i]] = letters[i];
@@ -486,6 +487,10 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
     var punctuation = punctuations[c];
     if (punctuation != null) {
       key_strokes += punctuation;
+      continue;
+    }
+    if (letters.includes(c.toLowerCase())) {
+      key_strokes += c.toLowerCase();
       continue;
     }
     var pinyin = char_pinyin[c];
