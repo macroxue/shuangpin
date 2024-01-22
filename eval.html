@@ -39,6 +39,7 @@
 2. 定义双拼方案时以‘0’表示零声母。所有声母的位置都可以自定义，具体例子参见下面的‘乱序优化’方案。
 3. 支持在多个键位上定义同一个声母或韵母，程序会自动选取最佳组合。参见’大牛‘方案。
 4. 如果要添加笔画辅助码，则以 -、|、/、\、^ 分别表示横、竖、撇、点(捺)、折，参见’UAI优化顶功‘方案。
+5. 无理拼音可以更充分地利用编码空间并改进手感，代价是增加了记忆量。
               </textarea>
             </td>
             <td class='stats' id='pinyin-stats-cell'>
@@ -165,7 +166,10 @@
           </tr>
         </table>
       </div>
-
+      <div class='irrational'>
+        <input type="checkbox" id='enable-irrational-pinyin'/>
+        <b>试验无理拼音: </b> <input id='irrational-pinyin' value='是=shv，用=yeng' size='100'/>
+      </div>
       <div class='result' id='result'>
         <table>
           <tr>

@@ -333,8 +333,6 @@ function evaluate_current_scheme() {
 }
 
 function evaluate_all_schemes() {
-  var geometry = document.getElementById('geometry').value;
-  var layout_name = document.getElementById('layout-name').value;
   var current_scheme_name = document.getElementById('scheme-name').value;
   for (var scheme_name in schemes) {
     var scheme = schemes[scheme_name];
@@ -432,7 +430,7 @@ function pinyin_to_key_strokes(pinyin, sheng_yun_key_map, layout, is_staggered) 
   return {key_strokes: best.key_strokes, error: ''};
 }
 
-function all_pinyin_to_key_strokes(sheng_yun_key_map) {
+function all_pinyin_to_key_strokes(all_pinyin, sheng_yun_key_map) {
   var geometry = document.getElementById('geometry').value;
   var is_staggered = (geometry == 'staggered');
   var layout = get_layout();
@@ -457,17 +455,40 @@ function all_pinyin_to_key_strokes(sheng_yun_key_map) {
   return {pinyin_key_map: pinyin_key_map, error: error};
 }
 
+function get_irrational_char_pinyin() {
+  var irrational_pinyins = document.getElementById('irrational-pinyin').value.split(/[ ,，]/);
+  var irrational_char_pinyin = {};
+  for (var i = 0; i < irrational_pinyins.length; ++i) {
+    var items = irrational_pinyins[i].split('=');
+    if (items.length == 2) {
+      irrational_char_pinyin[items[0]] = items[1];
+    }
+  }
+  return irrational_char_pinyin;
+}
+
 function convert_text_to_key_strokes(scheme_name, scheme) {
   var pm = read_pinyin_map_from_scheme(scheme);
   var error = pm.error;
+
+  var merged_all_pinyin = structuredClone(all_pinyin);
+  var use_irrational_pinyin = document.getElementById('enable-irrational-pinyin').checked;
+  var irrational_char_pinyin = {};
+  if (use_irrational_pinyin) {
+    irrational_char_pinyin = get_irrational_char_pinyin();
+    for (var c in irrational_char_pinyin) {
+      merged_all_pinyin.push(irrational_char_pinyin[c]);
+    }
+  }
+
   var pinyin_key_map = {};
   if (scheme_name == '全拼') {
-    for (var i = 0; i < all_pinyin.length; ++i) {
-      pinyin_key_map[all_pinyin[i]] = all_pinyin[i];
+    for (var i = 0; i < merged_all_pinyin.length; ++i) {
+      pinyin_key_map[merged_all_pinyin[i]] = merged_all_pinyin[i];
     }
   } else {
-    var conversion = all_pinyin_to_key_strokes(pm.pinyin_map);
-    if (Object.keys(conversion.pinyin_key_map).length < all_pinyin.length) {
+    var conversion = all_pinyin_to_key_strokes(merged_all_pinyin, pm.pinyin_map);
+    if (Object.keys(conversion.pinyin_key_map).length < merged_all_pinyin.length) {
       return {strokes: '', error: conversion.error};
     }
     pinyin_key_map = conversion.pinyin_key_map;
@@ -497,6 +518,12 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
     if (pinyin == null) {
       ignored_chars.add(c);
       continue;
+    }
+    if (use_irrational_pinyin) {
+      var irrational_pinyin = irrational_char_pinyin[c];
+      if (irrational_pinyin != null) {
+        pinyin = irrational_pinyin;
+      }
     }
     if (!(pinyin in pinyin_key_map)) {
       ignored_pinyins.add(pinyin);
