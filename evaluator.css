@@ -1,3 +1,13 @@
+/* Hide scrollbar but allow scrolling */
+body {
+  -ms-overflow-style: none; /* for Internet Explorer, Edge */
+  scrollbar-width: none;    /* for Firefox */
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+body::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, and Opera */
+}
 body {
   background: #eee;
 }
@@ -29,7 +39,9 @@ div.keyboard {
   margin-bottom: 10px;
 }
 div.keyboard input {
-  border: 2px solid #28a;
+  border: 1px solid #28a;
+  border-radius: 3px;
+  font-size: 100%;
   margin-top: 8px;
   margin-bottom: 8px;
   padding: 2px;
@@ -40,7 +52,7 @@ div.keyboard div {
 }
 div.keyboard table, div.keyboard th, div.keyboard td {
   background: #fed;
-  border: 2px solid #243;
+  border: 1px solid #243;
   padding: 8px 8px;
   border-collapse: collapse;
   margin-top: -1px;
