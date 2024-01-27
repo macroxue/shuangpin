@@ -78,7 +78,7 @@ var punctuations = {
     '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
 };
 
-var letters = 'abcdefghijklmnopqrstuvwxyz';
+var letters = 'abcdefghijklmnopqrstuvwxyz 0123456789';
 
 function split_pinyin(pinyin) {
   if (pinyin == 'ng') {
@@ -127,6 +127,16 @@ function update_yun_sheng_freq(yun, sheng) {
   }
 }
 
+var alphabeta_freq = {}
+
+function update_alphabeta_freq(char) {
+  if (alphabeta_freq[char] == null) {
+    alphabeta_freq[char] = 1;
+  } else {
+    ++alphabeta_freq[char];
+  }
+}
+
 function stat_pinyin() {
   var input = document.getElementById('input-text').value;
   var pinyin_freq = {};
@@ -134,10 +144,12 @@ function stat_pinyin() {
   var yun_freq = {};
   var pinyin_splits = {};
   var total = 0;
+  var alphabeta_total = 0;
 
   var last_yun = '';
   sheng_yun_freq = {};
   yun_sheng_freq = {};
+  alphabeta_freq = {};
 
   for (var i = 0; i < input.length; ++i) {
     var c = input[i].trim();
@@ -146,8 +158,15 @@ function stat_pinyin() {
     }
     var punctuation = punctuations[c];
     if (punctuation != null) {
+      ++alphabeta_total;
+      update_alphabeta_freq(punctuation);
       update_yun_sheng_freq(last_yun, punctuation);
       last_yun = punctuation;
+      continue;
+    }
+    if (letters.includes(c.toLowerCase())) {
+      ++alphabeta_total;
+      update_alphabeta_freq(c.toLowerCase());
       continue;
     }
     var pinyin = char_pinyin[c];
@@ -187,9 +206,11 @@ function stat_pinyin() {
   save_pinyin_stats('pinyin', pinyin_freq, total);
   save_pinyin_stats('sheng', sheng_freq, total);
   save_pinyin_stats('yun', yun_freq, total);
+  save_pinyin_stats('alphabet', alphabeta_freq, alphabeta_total);
   show_pinyin_stats('pinyin');
   show_pinyin_stats('sheng');
   show_pinyin_stats('yun');
+  show_pinyin_stats('alphabet');
 }
 
 function save_pinyin_stats(type, freq, total) {

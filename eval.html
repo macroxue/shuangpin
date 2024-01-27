@@ -63,11 +63,19 @@
               <textarea readonly rows='6' cols='14' id='yun-stats'>
               </textarea>
             </td>
+            <td class='stats' id='alphabet-stats-cell'>
+              <p/><b>符号: </b>
+              <input id='alphabet-stats-filter' onchange='show_pinyin_stats("alphabet")'/>
+              <br/>
+              <textarea readonly rows='6' cols='14' id='alphabet-stats'>
+              </textarea>
+            </td>
           </tr>
         </table>
         <div class='stats-saved' id='pinyin-stats-saved'></div>
         <div class='stats-saved' id='sheng-stats-saved'></div>
         <div class='stats-saved' id='yun-stats-saved'></div>
+        <div class='stats-saved' id='alphabet-stats-saved'></div>
       </div>
 
       <div class='keyboard'>
