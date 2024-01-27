@@ -78,7 +78,7 @@ var punctuations = {
     '，':',', '。':'.', '；':';', ',':',', '.':'.', ';':';', '/':'/'
 };
 
-var letters = 'abcdefghijklmnopqrstuvwxyz 0123456789';
+var letters = 'abcdefghijklmnopqrstuvwxyz';
 
 function split_pinyin(pinyin) {
   if (pinyin == 'ng') {
@@ -164,7 +164,7 @@ function stat_pinyin() {
       last_yun = punctuation;
       continue;
     }
-    if (letters.includes(c.toLowerCase())) {
+    if (letters.includes(c.toLowerCase()) || '1234567890 '.includes(c)) {
       ++alphabeta_total;
       update_alphabeta_freq(c.toLowerCase());
       continue;
