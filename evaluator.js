@@ -238,6 +238,10 @@ function show_pinyin_stats(type) {
 }
 
 function initialize_on_load() {
+  const url_params = new URLSearchParams(window.location.search);
+  if (url_params.get('irrational') != null) {
+    show_element('irrational');
+  }
   build_char_pinyin_map();
   select_scheme();
 }

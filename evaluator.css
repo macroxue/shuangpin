@@ -24,7 +24,7 @@ div.test-text td[class='stats'] {
 div.test-text div[class='stats-saved'] {
   display: none
 }
-div.keyboard, div.irrational {
+div.keyboard {
   margin-left: 20px;
   margin-bottom: 10px;
 }
@@ -53,6 +53,11 @@ div.keyboard #middle-row {
 }
 div.keyboard #bottom-row {
   margin-left: 75px;
+}
+div.irrational {
+  margin-left: 20px;
+  margin-bottom: 10px;
+  display: none;
 }
 div.result {
   margin-left: 20px;
