@@ -317,6 +317,7 @@ function evaluate_scheme(scheme_name, scheme) {
   var layout_name = document.getElementById('layout-name').value;
   var conversion = convert_text_to_key_strokes(scheme_name, scheme);
   var result = hit_key_strokes(conversion.strokes);
+  result.chars = conversion.chars;
   result.error = conversion.error;
   if (results[scheme_name] == null) {
     add_empty_results(scheme_name);
@@ -497,6 +498,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
 
   // Convert characters to key strokes.
   var input = document.getElementById('input-text').value;
+  var chars = 0;
   var key_strokes = '';
   var ignored_chars = new Set();
   var ignored_pinyins = new Set();
@@ -507,10 +509,12 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
     }
     var punctuation = punctuations[c];
     if (punctuation != null) {
+      chars++;
       key_strokes += punctuation;
       continue;
     }
     if (letters.includes(c.toLowerCase())) {
+      chars++;
       key_strokes += c.toLowerCase();
       continue;
     }
@@ -533,6 +537,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
       ignored += c;
       continue;
     }
+    chars++;
     key_strokes += pinyin_key_map[pinyin];
   }
   if (ignored_chars.size > 0) {
@@ -541,7 +546,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
   if (ignored_pinyins.size > 0) {
     console.log('忽略的拼音: ' + Array.from(ignored_pinyins).join('，'));
   }
-  return {strokes:key_strokes, error:error};
+  return {chars:chars, strokes:key_strokes, error:error};
 }
 
 function hit_key_strokes(key_strokes) {
@@ -632,10 +637,11 @@ function show_results(scheme_name) {
   show_element('result');
   var hits = result.hits;
   var time = result.time;
-  var speed = hits / time;
+  var speed = hits / time * 100;
+  var score = result.chars / time * 200;
   var total_distance = result.effective_distance + result.overlap_distance;
   set_inner_html('error', result.error.trim().replace(/\n/g, '，'));
-  set_inner_html('score', (speed * 100).toFixed(1) + '分');
+  set_inner_html('score', score.toFixed(1) + '分');
   set_inner_html('hits', hits);
   set_inner_html('time', Math.round(time));
   set_inner_html('avg_time', (time / hits).toFixed(2));
