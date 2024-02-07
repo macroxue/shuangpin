@@ -497,7 +497,7 @@ function convert_text_to_key_strokes(scheme_name, scheme) {
   var pm = read_pinyin_map_from_scheme(scheme);
   var error = pm.error;
 
-  var merged_all_pinyin = structuredClone(all_pinyin);
+  var merged_all_pinyin = [...all_pinyin];
   var use_irrational_pinyin = document.getElementById('enable-irrational-pinyin').checked;
   var irrational_char_pinyin = {};
   if (use_irrational_pinyin) {
